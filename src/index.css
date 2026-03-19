@@ -84,6 +84,25 @@
 }
 
 @layer base {
+  html.snap-scroll-page {
+    scroll-behavior: smooth;
+    scroll-snap-type: y proximity;
+    scroll-padding-top: 5rem;
+  }
+  html.snap-scroll-page .screen-snap-page > section {
+    min-height: 100svh;
+    scroll-snap-align: start;
+  }
+  @media (max-width: 768px) {
+    html.snap-scroll-page {
+      scroll-snap-type: y proximity;
+      scroll-padding-top: 4.5rem;
+    }
+    html.snap-scroll-page .screen-snap-page > section {
+      min-height: 100dvh;
+    }
+  }
+
   * {
     @apply border-border;
   }

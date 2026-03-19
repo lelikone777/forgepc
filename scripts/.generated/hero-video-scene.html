@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ForgePC Hero Video Scene</title>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #040607;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+      }
+
+      canvas {
+        width: 1280px;
+        height: 720px;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="scene" width="1280" height="720"></canvas>
+    <script>
+      const canvas = document.getElementById("scene");
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width;
+      const H = canvas.height;
+      const TAU = Math.PI * 2;
+      const totalDuration = 9000;
+
+      const rigs = [
+        { x: -840, y: 0, scale: 0.96, accent: "#00f6ff", accent2: "#32ff7e", fanPhase: 0.1 },
+        { x: -340, y: 18, scale: 1.02, accent: "#ff4fd8", accent2: "#00f6ff", fanPhase: 0.9 },
+        { x: 180, y: -8, scale: 1.1, accent: "#36ff88", accent2: "#14b8ff", fanPhase: 1.6 },
+        { x: 640, y: 12, scale: 0.98, accent: "#ff8a00", accent2: "#00f6ff", fanPhase: 2.3 },
+        { x: 1080, y: -14, scale: 1.04, accent: "#00f6ff", accent2: "#ff4fd8", fanPhase: 2.8 },
+      ];
+
+      const cameraKeyframes = [
+        { t: 0, x: -980, y: 0, zoom: 0.9, tilt: -0.06 },
+        { t: 1700, x: -460, y: -22, zoom: 1.08, tilt: 0.02 },
+        { t: 3600, x: 40, y: 12, zoom: 1.22, tilt: -0.05 },
+        { t: 5600, x: 560, y: -16, zoom: 1.08, tilt: 0.04 },
+        { t: 7400, x: 220, y: 18, zoom: 0.98, tilt: -0.02 },
+        { t: 9000, x: -980, y: 0, zoom: 0.9, tilt: -0.06 },
+      ];
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function mix(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function smooth(t) {
+        return t * t * (3 - 2 * t);
+      }
+
+      function easeInOut(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+
+      function hexToRgba(hex, alpha) {
+        const value = hex.replace("#", "");
+        const chunk = value.length === 3
+          ? value.split("").map((char) => char + char).join("")
+          : value;
+        const number = Number.parseInt(chunk, 16);
+        const r = (number >> 16) & 255;
+        const g = (number >> 8) & 255;
+        const b = number & 255;
+        return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+      }
+
+      function cameraAt(time) {
+        for (let i = 0; i < cameraKeyframes.length - 1; i += 1) {
+          const current = cameraKeyframes[i];
+          const next = cameraKeyframes[i + 1];
+
+          if (time >= current.t && time <= next.t) {
+            const raw = (time - current.t) / (next.t - current.t);
+            const t = easeInOut(raw);
+            return {
+              x: mix(current.x, next.x, t),
+              y: mix(current.y, next.y, t),
+              zoom: mix(current.zoom, next.zoom, t),
+              tilt: mix(current.tilt, next.tilt, t),
+            };
+          }
+        }
+
+        return cameraKeyframes[cameraKeyframes.length - 1];
+      }
+
+      function drawGlowCircle(x, y, radius, color, alpha) {
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, hexToRgba(color, alpha));
+        gradient.addColorStop(1, hexToRgba(color, 0));
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, TAU);
+        ctx.fill();
+      }
+
+      function drawBackground(time, camera) {
+        const base = ctx.createLinearGradient(0, 0, W, H);
+        base.addColorStop(0, "#020405");
+        base.addColorStop(0.55, "#07120d");
+        base.addColorStop(1, "#030405");
+        ctx.fillStyle = base;
+        ctx.fillRect(0, 0, W, H);
+
+        drawGlowCircle(180, 120, 360, "#00f6ff", 0.16);
+        drawGlowCircle(W - 180, H - 120, 420, "#36ff88", 0.14);
+        drawGlowCircle(W * 0.58, H * 0.42, 260, "#ff4fd8", 0.1);
+
+        const horizon = 270 + Math.sin(time * 0.0006) * 8;
+        ctx.save();
+        ctx.strokeStyle = "rgba(45, 255, 151, 0.12)";
+        ctx.lineWidth = 1;
+
+        for (let i = -18; i <= 18; i += 1) {
+          const worldX = i * 120 - (camera.x * 0.42);
+          const sx = W / 2 + worldX;
+          ctx.beginPath();
+          ctx.moveTo(sx, horizon);
+          ctx.lineTo(W / 2 + worldX * 3.4, H + 140);
+          ctx.stroke();
+        }
+
+        for (let i = 0; i < 16; i += 1) {
+          const depth = i / 15;
+          const curve = depth * depth;
+          const y = mix(horizon, H + 80, curve);
+          ctx.strokeStyle = "rgba(0, 246, 255," + mix(0.2, 0.02, depth) + ")";
+          ctx.beginPath();
+          ctx.moveTo(-100, y);
+          ctx.lineTo(W + 100, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        ctx.save();
+        const streakX = ((time * 0.12) % (W + 400)) - 200;
+        const streak = ctx.createLinearGradient(streakX - 200, 0, streakX + 200, 0);
+        streak.addColorStop(0, "rgba(0, 0, 0, 0)");
+        streak.addColorStop(0.5, "rgba(0, 246, 255, 0.12)");
+        streak.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = streak;
+        ctx.fillRect(0, 0, W, H);
+        ctx.restore();
+
+        for (let i = 0; i < 70; i += 1) {
+          const px = ((i * 187.37) + time * 0.04) % (W + 140) - 70;
+          const py = (i * 79.13) % H;
+          const size = (i % 3) + 1;
+          ctx.fillStyle = i % 2 === 0 ? "rgba(0,246,255,0.12)" : "rgba(54,255,136,0.1)";
+          ctx.fillRect(px, py, size, size);
+        }
+      }
+
+      function drawFan(x, y, radius, time, color) {
+        const spin = time * 0.0045;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.strokeStyle = hexToRgba(color, 0.9);
+        ctx.fillStyle = hexToRgba(color, 0.12);
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = color;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, TAU);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.rotate(spin);
+        for (let i = 0; i < 3; i += 1) {
+          ctx.rotate(TAU / 3);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(radius * 0.6, -radius * 0.2, radius * 0.1, -radius * 0.84);
+          ctx.quadraticCurveTo(radius * 0.18, -radius * 0.2, 0, 0);
+          ctx.fill();
+        }
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = hexToRgba(color, 0.9);
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.16, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawRig(rig, time, camera) {
+        const dx = rig.x - camera.x;
+        const x = W / 2 + dx * 0.92 * camera.zoom;
+        if (x < -260 || x > W + 260) {
+          return;
+        }
+
+        const distanceFactor = clamp(1.15 - Math.abs(dx) / 1500, 0.58, 1.22);
+        const scale = rig.scale * camera.zoom * distanceFactor;
+        const y = H * 0.83 + rig.y - camera.y * 0.35;
+        const skew = -0.22 + camera.tilt;
+        const bodyW = 148;
+        const bodyH = 328;
+        const depth = 30;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+
+        ctx.save();
+        ctx.transform(1, 0, 0.82, 0.18, 0, 0);
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.filter = "blur(18px)";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 108, 24, 0, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+        ctx.filter = "none";
+
+        ctx.transform(1, 0, skew, 1, 0, 0);
+
+        const face = ctx.createLinearGradient(-bodyW / 2, -bodyH, bodyW / 2, 0);
+        face.addColorStop(0, "rgba(14, 18, 20, 0.96)");
+        face.addColorStop(1, "rgba(4, 8, 10, 0.94)");
+        const side = ctx.createLinearGradient(bodyW / 2, -bodyH, bodyW / 2 + depth, 0);
+        side.addColorStop(0, "rgba(8, 13, 16, 0.9)");
+        side.addColorStop(1, "rgba(0, 0, 0, 0.9)");
+
+        ctx.shadowBlur = 34;
+        ctx.shadowColor = hexToRgba(rig.accent, 0.45);
+        ctx.fillStyle = face;
+        ctx.fillRect(-bodyW / 2, -bodyH, bodyW, bodyH);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = side;
+        ctx.beginPath();
+        ctx.moveTo(bodyW / 2, -bodyH);
+        ctx.lineTo(bodyW / 2 + depth, -bodyH + depth * 0.46);
+        ctx.lineTo(bodyW / 2 + depth, depth * 0.46);
+        ctx.lineTo(bodyW / 2, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(255,255,255,0.06)";
+        ctx.strokeRect(-bodyW / 2, -bodyH, bodyW, bodyH);
+
+        ctx.lineWidth = 2.2;
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = rig.accent;
+        ctx.strokeStyle = hexToRgba(rig.accent, 0.92);
+        ctx.strokeRect(-bodyW / 2 + 14, -bodyH + 16, bodyW - 44, bodyH - 44);
+        ctx.shadowColor = rig.accent2;
+        ctx.strokeStyle = hexToRgba(rig.accent2, 0.85);
+        ctx.beginPath();
+        ctx.moveTo(bodyW / 2 - 8, -bodyH + 26);
+        ctx.lineTo(bodyW / 2 - 8, -28);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        const windowGradient = ctx.createLinearGradient(-bodyW / 2, -bodyH, bodyW / 2, 0);
+        windowGradient.addColorStop(0, "rgba(10, 18, 20, 0.18)");
+        windowGradient.addColorStop(1, "rgba(2, 6, 8, 0.32)");
+        ctx.fillStyle = windowGradient;
+        ctx.fillRect(-bodyW / 2 + 14, -bodyH + 16, bodyW - 44, bodyH - 44);
+
+        const fanX = -10;
+        const fanRadius = 26;
+        drawFan(fanX, -252, fanRadius, time + rig.fanPhase * 100, rig.accent);
+        drawFan(fanX, -174, fanRadius, time + rig.fanPhase * 200, rig.accent2);
+        drawFan(fanX, -96, fanRadius, time + rig.fanPhase * 300, rig.accent);
+
+        ctx.fillStyle = hexToRgba(rig.accent2, 0.22);
+        ctx.fillRect(-bodyW / 2 + 20, -44, bodyW - 62, 8);
+        ctx.fillStyle = hexToRgba(rig.accent, 0.28);
+        ctx.fillRect(-bodyW / 2 + 22, -30, bodyW - 82, 4);
+
+        const sweep = ((time * 0.00034 + rig.fanPhase) % 1);
+        const sweepX = mix(-bodyW / 2 - 18, bodyW / 2 + 18, sweep);
+        const shine = ctx.createLinearGradient(sweepX - 16, 0, sweepX + 32, 0);
+        shine.addColorStop(0, "rgba(255,255,255,0)");
+        shine.addColorStop(0.5, "rgba(255,255,255,0.12)");
+        shine.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = shine;
+        ctx.fillRect(-bodyW / 2 + 14, -bodyH + 16, bodyW - 44, bodyH - 44);
+
+        ctx.restore();
+      }
+
+      function renderFrame(now) {
+        const time = now % totalDuration;
+        const camera = cameraAt(time);
+        ctx.clearRect(0, 0, W, H);
+        drawBackground(time, camera);
+        rigs.forEach((rig) => drawRig(rig, time, camera));
+        window.__sceneReady = true;
+        requestAnimationFrame(renderFrame);
+      }
+
+      window.startCapture = async function startCapture(durationMs) {
+        const stream = canvas.captureStream(30);
+        const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+          ? "video/webm;codecs=vp9"
+          : "video/webm;codecs=vp8";
+        const chunks = [];
+        const recorder = new MediaRecorder(stream, {
+          mimeType,
+          videoBitsPerSecond: 2400000,
+        });
+
+        recorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            chunks.push(event.data);
+          }
+        };
+
+        const complete = new Promise((resolve) => {
+          recorder.onstop = async () => {
+            const blob = new Blob(chunks, { type: mimeType });
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          };
+        });
+
+        recorder.start(250);
+        await new Promise((resolve) => setTimeout(resolve, durationMs));
+        recorder.stop();
+        return complete;
+      };
+
+      requestAnimationFrame(renderFrame);
+    </script>
+  </body>
+</html>

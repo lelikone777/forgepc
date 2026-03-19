@@ -119,21 +119,58 @@ const faqItems = [
   { q: "Подойдут ли ваши сборки для разработки ИИ-агентов?", a: "Да, можно собрать систему под ИИ-агентов, контейнеры, базы данных, Python-стек и тяжёлую многозадачную работу." },
 ];
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Index() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [fpsGame, setFpsGame] = useState(0);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add("snap-scroll-page");
+    return () => root.classList.remove("snap-scroll-page");
+  }, []);
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen screen-snap-page">
       {/* HERO */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-accent/30" />
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
-          backgroundSize: "40px 40px",
-        }} />
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <motion.div
+            aria-hidden
+            className="absolute inset-[-4%]"
+            animate={{ scale: [1, 1.04, 1], x: [0, -10, 0], y: [0, 8, 0] }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              poster="/media/hero-neon-builds-poster.png"
+              disablePictureInPicture
+              className="h-full w-full object-cover opacity-85 [filter:contrast(1.1)_saturate(1.12)_brightness(0.82)] dark:opacity-80 dark:[filter:contrast(1.08)_saturate(1.05)_brightness(0.72)]"
+            >
+              <source src="/media/hero-neon-builds.webm" type="video/webm" />
+            </video>
+          </motion.div>
+        </div>
+        <div className="absolute inset-0 bg-background/46 dark:bg-background/56" />
+        <div className="absolute inset-0 bg-gradient-to-br from-background/84 via-background/54 to-accent/22 dark:to-primary/14" />
+        <motion.div
+          aria-hidden
+          className="absolute inset-x-[8%] bottom-[-12%] h-[42vh] rounded-full bg-primary/16 blur-3xl dark:bg-primary/12"
+          animate={{ opacity: [0.18, 0.3, 0.18], scale: [0.96, 1.04, 0.96] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
+            backgroundSize: "40px 40px",
+          }}
+        />
         <div className="relative container mx-auto px-4 pt-32 pb-20 text-center">
           <AnimatedSection>
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display leading-[0.95] mb-6">
