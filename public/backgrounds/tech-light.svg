@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none">
+  <defs>
+    <linearGradient id="base" x1="220" y1="80" x2="1700" y2="1030" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8F0"/>
+      <stop offset="0.5" stop-color="#FFF0DE"/>
+      <stop offset="1" stop-color="#FFE6CA"/>
+    </linearGradient>
+    <linearGradient id="line" x1="180" y1="160" x2="1690" y2="945" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB06A" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#FF6A00" stop-opacity="0.45"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(430 260) rotate(14) scale(560 340)">
+      <stop stop-color="#FFB066" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#FFB066" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1450 860) rotate(-16) scale(620 350)">
+      <stop stop-color="#FF7A22" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#FF7A22" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#base)"/>
+  <ellipse cx="430" cy="260" rx="560" ry="340" fill="url(#glowA)"/>
+  <ellipse cx="1450" cy="860" rx="620" ry="350" fill="url(#glowB)"/>
+
+  <g stroke="url(#line)" stroke-width="1.5" stroke-linecap="round" opacity="0.8">
+    <path d="M110 874L466 644H1454L1818 874"/>
+    <path d="M224 874L526 698H1398L1698 874"/>
+    <path d="M316 874L580 742H1340L1605 874"/>
+    <path d="M390 874L625 780H1294L1528 874"/>
+    <path d="M962 646V874"/>
+    <path d="M1215 646V874"/>
+    <path d="M706 646V874"/>
+  </g>
+
+  <g stroke="#FF7A1C" stroke-width="2" opacity="0.26">
+    <rect x="792" y="354" width="336" height="210" rx="24"/>
+    <rect x="840" y="394" width="240" height="130" rx="16"/>
+    <path d="M792 434H732M792 484H708M1128 434H1190M1128 484H1216"/>
+    <path d="M930 354V292M992 354V278M1054 354V292M930 564V632M992 564V648M1054 564V632"/>
+  </g>
+
+  <g stroke="#C76417" stroke-width="1.2" opacity="0.2">
+    <path d="M180 210H488L544 266H758"/>
+    <path d="M1740 206H1432L1376 262H1162"/>
+    <path d="M226 910H494L546 858H742"/>
+    <path d="M1692 910H1424L1370 858H1172"/>
+  </g>
+</svg>

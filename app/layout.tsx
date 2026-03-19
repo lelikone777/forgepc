@@ -71,12 +71,18 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body suppressHydrationWarning className="min-h-screen bg-background text-foreground antialiased">
-        <AppProviders>
-          <Header />
-          {children}
-          <Footer />
-        </AppProviders>
+      <body
+        suppressHydrationWarning
+        className="relative min-h-screen overflow-x-hidden bg-background text-foreground antialiased"
+      >
+        <div aria-hidden className="app-bg" />
+        <div className="relative z-10">
+          <AppProviders>
+            <Header />
+            {children}
+            <Footer />
+          </AppProviders>
+        </div>
       </body>
     </html>
   );

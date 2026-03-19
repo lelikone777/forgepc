@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none">
+  <defs>
+    <linearGradient id="baseDark" x1="250" y1="40" x2="1710" y2="1050" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#060807"/>
+      <stop offset="0.5" stop-color="#0A0E0C"/>
+      <stop offset="1" stop-color="#050705"/>
+    </linearGradient>
+    <linearGradient id="neon" x1="164" y1="138" x2="1742" y2="972" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#56F79B" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#23C66B" stop-opacity="0.5"/>
+    </linearGradient>
+    <radialGradient id="neonGlowA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(420 248) rotate(16) scale(600 360)">
+      <stop stop-color="#49ED90" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#49ED90" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="neonGlowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1500 856) rotate(-14) scale(670 370)">
+      <stop stop-color="#36D97E" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#36D97E" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#baseDark)"/>
+  <ellipse cx="420" cy="248" rx="600" ry="360" fill="url(#neonGlowA)"/>
+  <ellipse cx="1500" cy="856" rx="670" ry="370" fill="url(#neonGlowB)"/>
+
+  <g stroke="url(#neon)" stroke-width="1.6" stroke-linecap="round" opacity="0.76">
+    <path d="M96 892L464 642H1458L1832 892"/>
+    <path d="M216 892L526 700H1400L1710 892"/>
+    <path d="M312 892L584 744H1338L1608 892"/>
+    <path d="M390 892L632 782H1288L1530 892"/>
+    <path d="M960 642V892"/>
+    <path d="M704 642V892"/>
+    <path d="M1216 642V892"/>
+  </g>
+
+  <g stroke="#59F09D" stroke-width="2.1" opacity="0.24">
+    <rect x="788" y="344" width="344" height="222" rx="24"/>
+    <rect x="838" y="386" width="244" height="140" rx="16"/>
+    <path d="M788 428H722M788 482H696M1132 428H1198M1132 482H1224"/>
+    <path d="M930 344V278M992 344V264M1054 344V278M930 566V638M992 566V652M1054 566V638"/>
+  </g>
+
+  <g stroke="#2EBF70" stroke-width="1.2" opacity="0.22">
+    <path d="M166 198H492L548 254H770"/>
+    <path d="M1752 200H1426L1370 256H1148"/>
+    <path d="M214 920H486L542 868H750"/>
+    <path d="M1706 920H1432L1376 868H1166"/>
+  </g>
+</svg>
