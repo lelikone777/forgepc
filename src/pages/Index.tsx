@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { AnimatedSection, AnimatedItem } from "../components/AnimatedSection";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Gamepad2, Monitor, Cpu, Palette, Brain, Bot, Cog, Thermometer,
   Shield, Wrench, Zap, Eye, Star, ChevronRight, ArrowRight,
