@@ -84,31 +84,15 @@
 }
 
 @layer base {
-  html.snap-scroll-page {
-    scroll-behavior: smooth;
-    scroll-snap-type: y proximity;
-    scroll-padding-top: 5rem;
-  }
-  html.snap-scroll-page .screen-snap-page > section {
-    min-height: 100svh;
-    scroll-snap-align: start;
-  }
-  @media (max-width: 768px) {
-    html.snap-scroll-page {
-      scroll-snap-type: y proximity;
-      scroll-padding-top: 4.5rem;
-    }
-    html.snap-scroll-page .screen-snap-page > section {
-      min-height: 100dvh;
-    }
-  }
-
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Geologica', sans-serif;
+  }
+  button:not(:disabled) {
+    cursor: pointer;
   }
   h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.04em;
@@ -161,6 +145,36 @@
       radial-gradient(70% 56% at 86% 94%, hsla(142, 88%, 38%, 0.18), transparent 74%),
       linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.72) 100%);
   }
+  .hero-ambient-glow {
+    transform: translate3d(0, 0, 0) scale(0.96);
+    transform-origin: center center;
+    animation: hero-ambient-glow-drift 200s cubic-bezier(0.37, 0, 0.23, 1) infinite;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    contain: paint;
+  }
+  @keyframes hero-ambient-glow-drift {
+    0% {
+      opacity: 0.18;
+      transform: translate3d(0, 0, 0) scale(0.96);
+    }
+    25% {
+      opacity: 0.215;
+      transform: translate3d(0.35%, -0.2%, 0) scale(0.974);
+    }
+    50% {
+      opacity: 0.24;
+      transform: translate3d(0.55%, -0.35%, 0) scale(0.985);
+    }
+    75% {
+      opacity: 0.22;
+      transform: translate3d(0.25%, -0.18%, 0) scale(0.976);
+    }
+    100% {
+      opacity: 0.18;
+      transform: translate3d(0, 0, 0) scale(0.96);
+    }
+  }
   @keyframes bg-breathe {
     0% {
       transform: scale(1.02) translate3d(0, 0, 0);
@@ -196,6 +210,7 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
+    .hero-ambient-glow,
     .app-bg::before,
     .app-bg::after {
       animation: none;

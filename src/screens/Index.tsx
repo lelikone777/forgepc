@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { AnimatedSection, AnimatedItem } from "@/shared/components/AnimatedSection";
 import { motion, AnimatePresence } from "framer-motion";
+import { catalogBuilds, formatCatalogPrice } from "@/shared/data/catalogBuilds";
 import {
   Gamepad2, Monitor, Cpu, Palette, Brain, Bot, Cog, Thermometer,
   Shield, Wrench, Zap, Eye, Star, ChevronRight, ArrowRight,
@@ -38,14 +40,78 @@ const useCards = [
 ];
 
 const configParts = [
-  { icon: Cpu, label: "Процессор" },
-  { icon: Monitor, label: "Видеокарта" },
-  { icon: HardDrive, label: "Оперативная память" },
-  { icon: Server, label: "Накопитель" },
-  { icon: CircuitBoard, label: "Материнская плата" },
-  { icon: BatteryCharging, label: "Блок питания" },
-  { icon: Box, label: "Корпус" },
-  { icon: Fan, label: "Охлаждение" },
+  {
+    id: "cpu",
+    icon: Cpu,
+    label: "Процессор",
+    summary: "Считает, координирует и удерживает систему отзывчивой.",
+    description:
+      "Процессор нужен для логики всей системы: он отвечает за расчёты, фоновые задачи, многозадачность, компиляцию, стриминг и общую отзывчивость ПК. Слабый CPU быстро становится узким местом даже при хорошей видеокарте.",
+    points: ["FPS и 1% low в играх", "Стриминг и многозадачность", "Разработка, рендер и тяжёлые рабочие процессы"],
+  },
+  {
+    id: "gpu",
+    icon: Monitor,
+    label: "Видеокарта",
+    summary: "Даёт графическую мощность для игр, 3D и ИИ.",
+    description:
+      "Видеокарта отвечает за графику, ускорение рендера, работу с нейросетями и большинство тяжёлых визуальных задач. Именно она чаще всего определяет уровень FPS, возможности в 1440p и 4K, а также запас по VRAM под современные проекты.",
+    points: ["Игры и трассировка лучей", "Blender, Unreal, DaVinci", "Stable Diffusion, локальные модели и GPU-ускорение"],
+  },
+  {
+    id: "ram",
+    icon: HardDrive,
+    label: "Оперативная память",
+    summary: "Держит активные данные под рукой без тормозов и свопа.",
+    description:
+      "Оперативная память нужна для того, чтобы система быстро держала открытые приложения, сцены, проекты и фоновые сервисы. Если памяти мало, ПК начинает упираться в диск, теряет плавность и резко проседает в комфорте работы.",
+    points: ["Многозадачность и браузер с кучей вкладок", "Монтаж, 3D и большие сцены", "Docker, базы данных и ИИ-агенты"],
+  },
+  {
+    id: "storage",
+    icon: Server,
+    label: "Накопитель",
+    summary: "Влияет на загрузки, кэш, проекты и общую скорость системы.",
+    description:
+      "Накопитель определяет, как быстро загружается Windows, запускаются игры, открываются проекты и работает кэш. Хороший NVMe SSD убирает ощущение вялости и особенно заметен в монтаже, разработке и работе с крупными файлами.",
+    points: ["Быстрый старт системы и программ", "Кэш, медиатека и большие проекты", "Комфорт без подвисаний и долгих загрузок"],
+  },
+  {
+    id: "motherboard",
+    icon: CircuitBoard,
+    label: "Материнская плата",
+    summary: "Связывает все компоненты и определяет запас по платформе.",
+    description:
+      "Материнская плата нужна не ради галочки. Она определяет совместимость комплектующих, качество питания процессора, набор портов, поддержку памяти, накопителей и будущих апгрейдов. Слабая плата часто ломает потенциал всей сборки.",
+    points: ["Стабильность питания и VRM", "Поддержка DDR5, SSD и интерфейсов", "Понятный апгрейдный потенциал"],
+  },
+  {
+    id: "psu",
+    icon: BatteryCharging,
+    label: "Блок питания",
+    summary: "Даёт системе стабильность, безопасность и запас по мощности.",
+    description:
+      "Блок питания питает всю систему и напрямую влияет на стабильность, шум и ресурс компонентов. Экономить на нём опасно: хороший PSU нужен для спокойной работы под нагрузкой, нормального запаса мощности и защиты дорогих комплектующих.",
+    points: ["Стабильность под пиковыми нагрузками", "Запас под апгрейд видеокарты", "Тихая и безопасная работа всей системы"],
+  },
+  {
+    id: "case",
+    icon: Box,
+    label: "Корпус",
+    summary: "Формирует airflow, шум и общее качество сборки.",
+    description:
+      "Корпус влияет не только на внешний вид. Он задаёт продуваемость, удобство укладки кабелей, уровень шума, совместимость с крупными видеокартами и радиаторами. Правильный корпус делает систему холоднее, тише и аккуратнее.",
+    points: ["Нормальный поток воздуха", "Место под длинные GPU и СЖО", "Чистая сборка и удобство обслуживания"],
+  },
+  {
+    id: "cooling",
+    icon: Fan,
+    label: "Охлаждение",
+    summary: "Удерживает температуры, шум и стабильность под нагрузкой.",
+    description:
+      "Охлаждение нужно для того, чтобы процессор и вся система работали стабильно без троттлинга и лишнего шума. Грамотно подобранный кулер или СЖО позволяет держать высокую производительность дольше и делает повседневное использование комфортнее.",
+    points: ["Температуры и отсутствие троттлинга", "Тихая работа под нагрузкой", "Стабильный буст процессора"],
+  },
 ];
 
 const games = [
@@ -55,17 +121,386 @@ const games = [
   "Red Dead Redemption 2", "Fortnite", "Escape from Tarkov", "Helldivers 2",
 ];
 
+interface GameInsight {
+  name: string;
+  summary: string;
+  needs: string[];
+  fit: string;
+}
+
+const gameInsights: GameInsight[] = [
+  {
+    name: "Counter-Strike 2",
+    summary: "Киберспортивный FPS сильнее зависит от процессора, низких задержек и стабильных 1% low, чем от экстремально дорогой видеокарты.",
+    needs: ["Сильный CPU для высокого FPS и 1% low", "Быстрая память для отзывчивости", "Стабильная платформа под high refresh"],
+    fit: "Такой профиль нужен, если важны 240+ FPS, быстрый отклик и предсказуемое поведение системы в соревновательной игре.",
+  },
+  {
+    name: "ARC Raiders",
+    summary: "Современный сетевой шутер любит запас по видеокарте и стабильный фреймрейт в динамичных сценах.",
+    needs: ["GPU для высоких пресетов и 1440p", "CPU для стабильности в онлайне", "SSD для быстрой загрузки ассетов"],
+    fit: "Подходит для уверенной игры на высоких настройках без постоянных просадок в интенсивных перестрелках.",
+  },
+  {
+    name: "Resident Evil 9",
+    summary: "Тяжёлый AAA-хоррор требует сильную видеокарту, запас по VRAM и адекватную платформу под высокие пресеты.",
+    needs: ["GPU для high / ultra", "VRAM под текстуры и эффекты", "CPU и SSD для плавной подгрузки сцен"],
+    fit: "Сборка рассчитана на комфортный AAA-гейминг с хорошей картинкой и без ощущения, что система работает на пределе.",
+  },
+  {
+    name: "Cyberpunk 2077",
+    summary: "Один из лучших стресс-тестов для видеокарты, трассировки и общего баланса системы.",
+    needs: ["GPU с запасом под RT и апскейлеры", "CPU для стабильного кадра", "SSD для быстрой подгрузки города"],
+    fit: "Даёт адекватный запас под высокие настройки, RT-сценарии и 1440p/4K в зависимости от профиля.",
+  },
+  {
+    name: "Warzone",
+    summary: "Королевские битвы особенно чувствительны к процессору, памяти и стабильности кадра в большой сетевой нагрузке.",
+    needs: ["CPU для плотных онлайн-сцен", "RAM для общей стабильности", "GPU для высокого FPS в 1440p"],
+    fit: "Хорошо подходит тем, кому нужен высокий и ровный FPS, а не только красивая цифра в бенчмарке.",
+  },
+  {
+    name: "Dota 2",
+    summary: "Игра не самая тяжёлая по графике, но любит высокий и стабильный FPS на соревновательных мониторах.",
+    needs: ["CPU и память для ровного кадра", "Быстрый отклик системы", "Стабильная платформа под long session"],
+    fit: "Профиль уместен для киберспорта, стриминга и комфортной игры с большим запасом по производительности.",
+  },
+  {
+    name: "Apex Legends",
+    summary: "Здесь важны высокий refresh, ровный кадр и хороший CPU/GPU-баланс без перекоса в одну деталь.",
+    needs: ["CPU для частого обновления кадра", "GPU для 1440p и высоких настроек", "RAM для общей отзывчивости"],
+    fit: "Подходит для игроков, которым нужен высокий FPS, быстрый отклик и стабильность в ранговых матчах.",
+  },
+  {
+    name: "Black Myth: Wukong",
+    summary: "Тяжёлый графический релиз, который быстро показывает реальный класс видеокарты и запас по платформе.",
+    needs: ["Сильная GPU для ультра и RT-сценариев", "VRAM под тяжёлые текстуры", "CPU для удержания плавности"],
+    fit: "Такая сборка нужна для современных single-player AAA-проектов, где важна не только средняя цифра FPS, но и комфорт картинки.",
+  },
+  {
+    name: "Alan Wake 2",
+    summary: "Игра очень чувствительна к видеокарте, RT и общему графическому запасу системы.",
+    needs: ["GPU высокого класса", "Апскейлеры и VRAM", "SSD для тяжёлых ассетов и быстрой подгрузки"],
+    fit: "Подходит тем, кто хочет запускать demanding-релизы без постоянного снижения настроек до компромиссного уровня.",
+  },
+  {
+    name: "S.T.A.L.K.E.R. 2",
+    summary: "Большой открытый мир и тяжёлые сцены требуют сочетания сильной GPU, CPU и быстрого SSD.",
+    needs: ["GPU для высокой детализации", "CPU для логики мира и NPC", "SSD для стриминга данных и загрузок"],
+    fit: "Даёт более уверенный опыт в открытом мире с большим количеством подгружаемых данных и эффектов.",
+  },
+  {
+    name: "GTA VI ready",
+    summary: "Это ориентир на будущую тяжёлую AAA-нагрузку, а не только на текущие релизы.",
+    needs: ["Запас по GPU на несколько лет", "CPU без слабых мест", "RAM и SSD под будущие требования"],
+    fit: "Такая конфигурация выбирается не под один релиз, а под нормальный срок жизни системы и запас по актуальности.",
+  },
+  {
+    name: "Forza Horizon 5",
+    summary: "Гоночные игры особенно хорошо показывают пользу сильной GPU при высоком разрешении и высокой частоте кадров.",
+    needs: ["GPU для 1440p/4K", "CPU для стабильного фреймрейта", "SSD для быстрых загрузок и потока данных"],
+    fit: "Подходит для красивой картинки, высокой плавности и комфортной игры на больших мониторах.",
+  },
+  {
+    name: "Red Dead Redemption 2",
+    summary: "Тяжёлый открытый мир любит видеокарту, память и общий запас по платформе.",
+    needs: ["GPU для high/ultra в высоком разрешении", "RAM для общей стабильности", "CPU для сложных сцен и мира"],
+    fit: "Даёт уверенный уровень производительности в больших, насыщенных сценах с высокой детализацией.",
+  },
+  {
+    name: "Fortnite",
+    summary: "В зависимости от режима это либо киберспортивная игра на сотни FPS, либо вполне тяжёлый современный проект.",
+    needs: ["CPU для high refresh", "GPU под Unreal Engine 5 режимы", "RAM для стриминга и многозадачности"],
+    fit: "Подходит как для соревновательной игры с высоким FPS, так и для более красивых UE5-пресетов.",
+  },
+  {
+    name: "Escape from Tarkov",
+    summary: "Очень процессорозависимый и нестабильный по нагрузке проект, где важен не средний FPS, а плавность ощущения.",
+    needs: ["CPU и память для сложных сцен", "SSD для карт и загрузок", "Стабильная платформа без дефицита RAM"],
+    fit: "Здесь особенно важна не витринная мощность, а сбалансированная система без слабых звеньев.",
+  },
+  {
+    name: "Helldivers 2",
+    summary: "Кооперативный экшен с тяжёлыми боевыми сценами, который любит сильную GPU и ровный кадр под нагрузкой.",
+    needs: ["GPU для плотных эффектов и 1440p", "CPU для расчётов и общей стабильности", "RAM под длительные игровые сессии"],
+    fit: "Подходит для high-intensity кооператива, где важны плавность и запас по производительности в массовых сценах.",
+  },
+];
+
 const programs = [
   "Blender", "Unreal Engine 5", "Adobe Premiere Pro", "DaVinci Resolve",
   "After Effects", "Photoshop", "AutoCAD", "3ds Max", "Houdini",
   "Docker", "PyTorch", "Stable Diffusion", "ComfyUI", "Ollama",
 ];
 
+interface ProgramInsight {
+  name: string;
+  summary: string;
+  needs: string[];
+  fit: string;
+}
+
+const programInsights: ProgramInsight[] = [
+  {
+    name: "Blender",
+    summary: "Нужен баланс между GPU-рендером, viewport и запасом памяти под тяжёлые сцены.",
+    needs: ["Сильная видеокарта для Cycles и viewport", "Много RAM для крупных сцен", "Быстрый SSD для ассетов и кэша"],
+    fit: "Подходит для моделинга, lookdev, анимации и GPU-рендера без узких мест на больших сценах.",
+  },
+  {
+    name: "Unreal Engine 5",
+    summary: "UE5 любит быстрый CPU, сильную GPU и нормальный запас памяти под большие проекты.",
+    needs: ["CPU для компиляции и шейдеров", "GPU для viewport, Lumen и Nanite", "RAM и SSD для тяжёлых проектов"],
+    fit: "Хороший вариант для разработки сцен, сборок проекта, работы с ассетами и многозадачности вокруг движка.",
+  },
+  {
+    name: "Adobe Premiere Pro",
+    summary: "Монтаж упирается в GPU-ускорение, быстрый кэш и нормальный объём памяти.",
+    needs: ["GPU для эффектов и ускорения таймлайна", "SSD для медиакэша и исходников", "RAM для тяжёлых последовательностей"],
+    fit: "Даёт комфортный монтаж в 4K, быстрый отклик таймлайна и нормальный запас под экспорт и многослойность.",
+  },
+  {
+    name: "DaVinci Resolve",
+    summary: "Resolve особенно хорошо чувствует мощную видеокарту и большой запас памяти.",
+    needs: ["GPU для color, Fusion и noise reduction", "RAM для сложных таймлайнов", "SSD для кэша и медиатеки"],
+    fit: "Подходит для цветокора, Fusion, тяжёлых эффектов и длительной работы на коммерческих проектах.",
+  },
+  {
+    name: "After Effects",
+    summary: "AE любит RAM, быстрый диск под cache и уверенную платформу под многослойные композиции.",
+    needs: ["Много RAM для предпросмотра", "Быстрый SSD для disk cache", "Стабильный CPU/GPU под эффекты"],
+    fit: "Комфортнее ведёт себя на сложных композициях, длинных превью и параллельной работе с другими Adobe-приложениями.",
+  },
+  {
+    name: "Photoshop",
+    summary: "Photoshop не требует экстремального железа, но очень любит отзывчивую систему и быстрый scratch.",
+    needs: ["Быстрый CPU для общей отзывчивости", "RAM под большие PSD и слои", "SSD для scratch и библиотек"],
+    fit: "Подходит для больших макетов, тяжёлых файлов, AI-инструментов и одновременной работы с несколькими проектами.",
+  },
+  {
+    name: "AutoCAD",
+    summary: "Для CAD важны стабильность платформы, CPU-отклик и чистая работа с проектами.",
+    needs: ["CPU для работы с чертежами и логикой", "RAM для больших наборов данных", "SSD для быстрого открытия проектов"],
+    fit: "Удобен для длительной инженерной работы, быстрых правок и одновременного запуска сопутствующего софта.",
+  },
+  {
+    name: "3ds Max",
+    summary: "Сцены, viewport и рендер требуют уже серьёзного запаса по GPU, CPU и памяти.",
+    needs: ["GPU для viewport и визуализации", "CPU для части вычислений и сцен", "RAM для больших проектов"],
+    fit: "Подходит для сложных сцен, материалов, анимации и параллельной работы с рендерами и редакторами.",
+  },
+  {
+    name: "Houdini",
+    summary: "Houdini быстро показывает слабые места системы в памяти, CPU и дисковой подсистеме.",
+    needs: ["CPU и RAM для симуляций", "SSD для кэша и временных файлов", "Сильная платформа под длительные нагрузки"],
+    fit: "Нормально раскрывается на симуляциях, procedural workflow и тяжёлых техзадачах без постоянного свопа.",
+  },
+  {
+    name: "Docker",
+    summary: "Контейнеры требуют не только CPU, но и адекватный объём RAM и быстрый SSD.",
+    needs: ["RAM под несколько сервисов сразу", "CPU для контейнеров и сборок", "SSD для образов, volume и кэша"],
+    fit: "Уверенно держит локальные сервисы, базы и dev-окружения без деградации всей системы.",
+  },
+  {
+    name: "PyTorch",
+    summary: "Для ML критичны VRAM, RAM и общая стабильность машины под долгую нагрузку.",
+    needs: ["GPU и объём VRAM", "RAM под датасеты и окружение", "SSD для моделей и кэша"],
+    fit: "Подходит для обучения, инференса, экспериментов и работы с реальными пайплайнами локально.",
+  },
+  {
+    name: "Stable Diffusion",
+    summary: "Здесь решает видеокарта и объём VRAM, а комфорт добавляют RAM и быстрый накопитель.",
+    needs: ["GPU с запасом по VRAM", "RAM для окружения и batch", "SSD для моделей, LoRA и output"],
+    fit: "Подходит для генерации изображений, upscale, LoRA и тяжёлых графов без постоянных компромиссов.",
+  },
+  {
+    name: "ComfyUI",
+    summary: "ComfyUI особенно чувствителен к VRAM и параллельным узлам в графе.",
+    needs: ["Большой запас VRAM", "RAM для дополнительных сервисов", "SSD для моделей и workflow"],
+    fit: "Даёт комфортный запас под сложные графы, ControlNet, upscale и несколько тяжёлых пайплайнов.",
+  },
+  {
+    name: "Ollama",
+    summary: "Локальные модели любят VRAM, системную память и быстрый накопитель под веса.",
+    needs: ["VRAM для моделей и инференса", "RAM под окружение и сервисы", "SSD для хранения весов"],
+    fit: "Подходит для локальных LLM, чат-сценариев, RAG, агентов и постоянной фоновой работы моделей.",
+  },
+];
+
+const performanceModes = ["Игры", "Работа", "ИИ"] as const;
+type PerformanceMode = (typeof performanceModes)[number];
+
+interface PerformanceProfile {
+  id: string;
+  mode: PerformanceMode;
+  buildId: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  config: {
+    gpu: string;
+    cpu: string;
+    ram: string;
+    storage: string;
+  };
+  fps: {
+    label: string;
+    value: string;
+    note: string;
+  }[];
+  suitableFor: string[];
+  workflowHighlights: {
+    title: string;
+    text: string;
+  }[];
+  settingsNote: string;
+}
+
+const performanceProfiles: PerformanceProfile[] = [
+  {
+    id: "balanced-1440",
+    mode: "Игры",
+    buildId: "perf-1",
+    title: "Игровой баланс 1440p",
+    subtitle: "Оптимальная конфигурация для high refresh и современных AAA-игр",
+    description:
+      "Ориентир для тех, кто хочет играть в 1440p на высоких настройках, иметь запас под стриминг, монтаж и не переплачивать за флагманский уровень без необходимости.",
+    config: {
+      gpu: "RTX 5070 Ti 16GB",
+      cpu: "Core Ultra 7 265K",
+      ram: "32 ГБ DDR5",
+      storage: "2 ТБ NVMe Gen5",
+    },
+    fps: [
+      { label: "Full HD 1080p", value: "240+", note: "киберспорт и высокий refresh" },
+      { label: "2K 1440p", value: "165+", note: "high / ultra без ощущения компромисса" },
+      { label: "4K 2160p", value: "90+", note: "с DLSS/FSR там, где это уместно" },
+    ],
+    suitableFor: [
+      "Counter-Strike 2, Warzone, Apex, Fortnite и другие соревновательные игры",
+      "Cyberpunk 2077, Alan Wake 2, Black Myth: Wukong и тяжёлые AAA-проекты",
+      "Стриминг, монтаж 4K, Blender viewport и универсальная домашняя рабочая станция",
+    ],
+    workflowHighlights: [
+      { title: "Монтаж и контент", text: "Комфортный монтаж в 4K, быстрый экспорт и нормальная работа с цветом, эффектами и медиакэшем." },
+      { title: "3D и разработка", text: "Подходит для UE5, Blender, компиляции проектов и тяжёлой многозадачности без перекоса в одну деталь." },
+      { title: "Повседневная скорость", text: "Быстрый запуск игр, софта и проектов за счёт сильного CPU, нормального SSD и адекватного объёма RAM." },
+    ],
+    settingsNote: "Ориентир по FPS дан для высоких или ультра-настроек, без экстремального упора в path tracing и с разумным использованием апскейлеров.",
+  },
+  {
+    id: "premium-4k",
+    mode: "Работа",
+    buildId: "work-2",
+    title: "Рабочая станция для продакшна",
+    subtitle: "Конфигурация для тяжёлого монтажа, 3D и многослойных рабочих пайплайнов",
+    description:
+      "Это уровень для тех, кто использует ПК как полноценный инструмент: монтаж, рендер, сложные сцены, многозадачность, тяжёлые проекты и длительная работа под нагрузкой без постоянных компромиссов.",
+    config: {
+      gpu: "RTX 5080 16GB",
+      cpu: "Ryzen 9 9950X",
+      ram: "128 ГБ DDR5",
+      storage: "4 ТБ NVMe",
+    },
+    fps: [
+      { label: "Full HD 1080p", value: "280+", note: "высокий запас даже вне игрового фокуса" },
+      { label: "2K 1440p", value: "180+", note: "плавный FPS в тяжёлых релизах" },
+      { label: "4K 2160p", value: "110+", note: "можно играть и работать на одной машине" },
+    ],
+    suitableFor: [
+      "DaVinci Resolve, Premiere Pro, After Effects и длинные монтажные сессии",
+      "Blender, Houdini, 3ds Max, Unreal Engine 5 и тяжёлые сцены",
+      "Работа с несколькими профессиональными приложениями одновременно без дефицита RAM",
+    ],
+    workflowHighlights: [
+      { title: "Монтаж и цвет", text: "Быстрый таймлайн, сильное GPU-ускорение и хороший запас памяти под тяжёлые проекты и эффекты." },
+      { title: "3D и визуализация", text: "Сильный вариант для viewport, GPU-рендера, материалов, сцен и сложных рабочих пайплайнов." },
+      { title: "Платформа без компромиссов", text: "Подходит тем, кто хочет один мощный ПК и для игр, и для серьёзной продуктивной работы." },
+    ],
+    settingsNote: "Ориентир по FPS рассчитан под высокий класс сборки с упором на качество картинки, трассировку и комфортный запас по мощности.",
+  },
+  {
+    id: "creator-ai",
+    mode: "ИИ",
+    buildId: "ai-1",
+    title: "Рабочая станция / creator / AI",
+    subtitle: "Конфигурация для тяжёлых рабочих задач, локального ИИ и многозадачности",
+    description:
+      "Если приоритетом являются не только игры, но и рендер, локальные модели, контейнеры, разработка и большие проекты, такой профиль показывает, как выглядит уже по-настоящему рабочая машина.",
+    config: {
+      gpu: "RTX 5090 32GB",
+      cpu: "Ryzen 9 9950X",
+      ram: "128 ГБ DDR5",
+      storage: "4 ТБ NVMe",
+    },
+    fps: [
+      { label: "Full HD 1080p", value: "260+", note: "игры тоже без слабых мест" },
+      { label: "2K 1440p", value: "170+", note: "тяжёлые релизы и высокий refresh" },
+      { label: "4K 2160p", value: "100+", note: "плюс огромный запас вне игр" },
+    ],
+    suitableFor: [
+      "Локальные LLM, Stable Diffusion, ComfyUI, PyTorch и GPU-ускоренные задачи",
+      "Docker, базы данных, ИИ-агенты, автоматизация и тяжёлая многозадачность",
+      "Монтаж, рендер, симуляции, сложные сцены и профессиональная работа под длительной нагрузкой",
+    ],
+    workflowHighlights: [
+      { title: "Локальный ИИ", text: "Большой объём VRAM и RAM делает систему пригодной для реальных пайплайнов, а не только для тестов на вечер." },
+      { title: "Тяжёлая многозадачность", text: "Можно одновременно держать IDE, контейнеры, модели, браузер, базы и рабочие сервисы без постоянного свопа." },
+      { title: "Профессиональная нагрузка", text: "Такая конфигурация рассчитана на длительную работу под рендером, генерацией, экспортом и сложными сценами." },
+    ],
+    settingsNote: "В этом профиле важен не только FPS в играх, а общий запас платформы под долгую тяжёлую работу, нейросети и профессиональные приложения.",
+  },
+];
+
 const aiCards = [
-  "Локальные нейросети и LLM", "Stable Diffusion и ComfyUI",
-  "Разработка ИИ-агентов", "Python и ML-стек",
-  "Docker и контейнеризация", "Unreal Engine и 3D",
-  "Видеомонтаж и рендер", "Многозадачная профессиональная работа",
+  {
+    title: "Локальные нейросети и LLM",
+    desc: "Ориентир на большие модели, локальный inference, RAG и постоянную фоновую работу с весами и памятью.",
+    className: "lg:col-span-5 lg:row-span-2",
+    accent: "from-primary/[0.16] via-primary/[0.08] to-transparent",
+  },
+  {
+    title: "Stable Diffusion и ComfyUI",
+    desc: "Запас по VRAM и дисковой подсистеме под сложные графы, upscale, ControlNet и batch-сценарии.",
+    className: "lg:col-span-4",
+    accent: "from-emerald-500/10 via-transparent to-transparent",
+  },
+  {
+    title: "Разработка ИИ-агентов",
+    desc: "Контейнеры, оркестрация, базы, очереди, IDE и локальные модели в одном окружении.",
+    className: "lg:col-span-3",
+    accent: "from-primary/[0.12] via-transparent to-transparent",
+  },
+  {
+    title: "Python и ML-стек",
+    desc: "Эксперименты, ноутбуки, обучение, инференс и тяжёлая многозадачность без постоянного свопа.",
+    className: "lg:col-span-3",
+    accent: "from-sky-500/10 via-transparent to-transparent",
+  },
+  {
+    title: "Docker и контейнеризация",
+    desc: "Локальные сервисы, несколько окружений и стабильная работа dev-инфраструктуры на одной машине.",
+    className: "lg:col-span-4",
+    accent: "from-primary/[0.08] via-transparent to-transparent",
+  },
+  {
+    title: "Unreal Engine и 3D",
+    desc: "Большие сцены, viewport, компиляция, ассеты и тяжёлые проекты, где слабые места сразу заметны.",
+    className: "lg:col-span-5",
+    accent: "from-amber-500/10 via-transparent to-transparent",
+  },
+  {
+    title: "Видеомонтаж и рендер",
+    desc: "Resolve, Premiere, Fusion, export, cache и длительные сессии без просадок и перегрева.",
+    className: "lg:col-span-4",
+    accent: "from-primary/[0.12] via-transparent to-transparent",
+  },
+  {
+    title: "Многозадачная профессиональная работа",
+    desc: "Один ПК под всё: IDE, браузер, базы, модели, рендер, видеомонтаж и тяжёлые фоновые процессы.",
+    className: "lg:col-span-8",
+    accent: "from-emerald-500/10 via-primary/[0.07] to-transparent",
+  },
 ];
 
 const builds = [
@@ -119,50 +554,38 @@ const faqItems = [
   { q: "Подойдут ли ваши сборки для разработки ИИ-агентов?", a: "Да, можно собрать систему под ИИ-агентов, контейнеры, базы данных, Python-стек и тяжёлую многозадачную работу." },
 ];
 
-import { useEffect, useState } from "react";
-
 export default function Index() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [fpsGame, setFpsGame] = useState(0);
+  const [activeProgram, setActiveProgram] = useState(programs[0]);
+  const [activeConfigPart, setActiveConfigPart] = useState(configParts[0].id);
+  const [activePerformanceMode, setActivePerformanceMode] = useState<PerformanceMode>("Игры");
 
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.add("snap-scroll-page");
-    return () => root.classList.remove("snap-scroll-page");
-  }, []);
+  const selectedConfigPart = configParts.find((part) => part.id === activeConfigPart) ?? configParts[0];
+  const selectedPerformanceProfile =
+    performanceProfiles.find((profile) => profile.mode === activePerformanceMode) ?? performanceProfiles[0];
+  const selectedCatalogBuild =
+    catalogBuilds.find((build) => build.id === selectedPerformanceProfile.buildId) ?? catalogBuilds[0];
+  const selectedGameInsight = gameInsights.find((game) => game.name === games[fpsGame]) ?? gameInsights[0];
+  const selectedProgramInsight =
+    programInsights.find((program) => program.name === activeProgram) ?? programInsights[0];
 
   return (
-    <div className="min-h-screen screen-snap-page">
+    <div className="min-h-screen">
       {/* HERO */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <motion.div
+          <div
             aria-hidden
-            className="absolute inset-[-4%]"
-            animate={{ scale: [1, 1.04, 1], x: [0, -10, 0], y: [0, 8, 0] }}
-            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              poster="/media/hero-neon-builds-poster.png"
-              disablePictureInPicture
-              className="h-full w-full object-cover opacity-85 [filter:contrast(1.1)_saturate(1.12)_brightness(0.82)] dark:opacity-80 dark:[filter:contrast(1.08)_saturate(1.05)_brightness(0.72)]"
-            >
-              <source src="/media/hero-neon-builds.webm" type="video/webm" />
-            </video>
-          </motion.div>
+            className="absolute inset-[-4%] bg-center bg-cover bg-no-repeat opacity-85 [filter:contrast(1.1)_saturate(1.12)_brightness(0.82)] dark:opacity-80 dark:[filter:contrast(1.08)_saturate(1.05)_brightness(0.72)]"
+            style={{ backgroundImage: "url('/media/hero-neon-builds-poster.png')" }}
+          />
         </div>
         <div className="absolute inset-0 bg-background/46 dark:bg-background/56" />
         <div className="absolute inset-0 bg-gradient-to-br from-background/84 via-background/54 to-accent/22 dark:to-primary/14" />
-        <motion.div
+        <div
           aria-hidden
-          className="absolute inset-x-[8%] bottom-[-12%] h-[42vh] rounded-full bg-primary/16 blur-3xl dark:bg-primary/12"
-          animate={{ opacity: [0.18, 0.3, 0.18], scale: [0.96, 1.04, 0.96] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="hero-ambient-glow absolute inset-x-[8%] bottom-[-12%] h-[42vh] rounded-full bg-primary/16 blur-3xl dark:bg-primary/12"
         />
         <div
           className="absolute inset-0 opacity-[0.03]"
@@ -310,17 +733,67 @@ export default function Index() {
           </AnimatedSection>
           <AnimatedSection delay={0.2}>
             <div className="max-w-4xl mx-auto bg-card border border-border rounded-2xl p-6 md:p-10 shadow-card-hover">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {configParts.map((p, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl bg-accent/50 border border-border hover:border-primary/30 transition-colors cursor-default group"
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setActiveConfigPart(p.id)}
+                    className={`group flex min-h-[130px] flex-col items-start gap-3 rounded-2xl border p-5 text-left transition-all duration-300 ${
+                      selectedConfigPart.id === p.id
+                        ? "border-primary/40 bg-primary/[0.08] shadow-[0_18px_45px_-28px_rgba(217,119,6,0.55)]"
+                        : "border-border bg-accent/40 hover:border-primary/25 hover:bg-accent/70"
+                    }`}
                   >
-                    <p.icon size={28} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                    <span className="text-sm font-medium text-foreground">{p.label}</span>
-                  </div>
+                    <div
+                      className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${
+                        selectedConfigPart.id === p.id ? "bg-primary text-primary-foreground" : "bg-background text-primary"
+                      }`}
+                    >
+                      <p.icon size={22} />
+                    </div>
+                    <div>
+                      <span className="block text-sm font-semibold text-foreground">{p.label}</span>
+                      <span className="mt-1 block text-xs leading-5 text-muted-foreground">{p.summary}</span>
+                    </div>
+                  </button>
                 ))}
               </div>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={selectedConfigPart.id}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                  className="mb-8 overflow-hidden rounded-[1.75rem] border border-primary/20 bg-gradient-to-br from-background via-background to-primary/[0.05]"
+                >
+                  <div className="grid gap-6 p-6 md:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.9fr)] md:p-8">
+                    <div>
+                      <div className="mb-4 inline-flex items-center gap-3 rounded-full border border-primary/15 bg-primary/[0.08] px-4 py-2 text-sm font-medium text-foreground">
+                        <selectedConfigPart.icon size={16} className="text-primary" />
+                        {selectedConfigPart.label}
+                      </div>
+                      <p className="max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+                        {selectedConfigPart.description}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-border bg-card/80 p-5">
+                      <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        На что влияет
+                      </p>
+                      <div className="space-y-3">
+                        {selectedConfigPart.points.map((point) => (
+                          <div key={point} className="flex items-start gap-3">
+                            <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                            <span className="text-sm leading-6 text-foreground">{point}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
               <div className="flex flex-wrap gap-2 mb-8">
                 {["Цена обновляется в реальном времени", "Проверка совместимости", "Подбор под игру и бюджет", "Подбор под рабочие задачи", "Подбор под локальный ИИ"].map((t) => (
                   <span key={t} className="text-xs px-3 py-1.5 rounded-full bg-accent text-accent-foreground border border-border">{t}</span>
@@ -348,57 +821,408 @@ export default function Index() {
                 <span className="gradient-text">Видно в реальных задачах.</span>
               </h2>
               <p className="text-muted-foreground max-w-3xl mx-auto text-lg">
-                Ориентируйся не только на список комплектующих, но и на ожидаемую производительность в современных играх и рабочих программах.
+                Ориентируйся не только на список комплектующих, но и на ожидаемую производительность в современных играх и рабочих программах. Ниже показаны не абстрактные цифры, а ориентиры для конкретных классов конфигураций.
               </p>
             </div>
           </AnimatedSection>
           <AnimatedSection delay={0.1}>
-            <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4 text-foreground">Игры</h3>
-              <div className="flex flex-wrap gap-2">
-                {games.map((g, i) => (
+            <div className="mb-8 flex justify-center">
+              <div className="inline-flex flex-wrap justify-center gap-2 rounded-2xl border border-border bg-card p-2">
+                {performanceModes.map((mode) => (
                   <button
-                    key={g}
-                    onClick={() => setFpsGame(i)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      fpsGame === i
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/30"
+                    key={mode}
+                    type="button"
+                    onClick={() => setActivePerformanceMode(mode)}
+                    className={`rounded-xl px-5 py-2.5 text-sm font-medium transition-all ${
+                      activePerformanceMode === mode
+                        ? "bg-primary text-primary-foreground shadow-[0_16px_35px_-24px_rgba(217,119,6,0.55)]"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
                     }`}
                   >
-                    {g}
+                    {mode}
                   </button>
                 ))}
               </div>
             </div>
           </AnimatedSection>
-          <AnimatedSection delay={0.2}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-              {[
-                { label: "Full HD 1080p", fps: "240+" },
-                { label: "2K 1440p", fps: "165+" },
-                { label: "4K 2160p", fps: "90+" },
-              ].map((r) => (
-                <div key={r.label} className="p-6 rounded-2xl bg-card border border-border text-center">
-                  <p className="text-sm text-muted-foreground mb-2">{r.label}</p>
-                  <p className="text-4xl font-mono-spec font-bold text-primary">{r.fps}</p>
-                  <p className="text-xs text-muted-foreground mt-1">FPS</p>
+          <AnimatedSection delay={0.12}>
+            <div className="mb-8 overflow-hidden rounded-[1.75rem] border border-border bg-card">
+              <div className="hidden border-b border-border bg-background/70 px-6 py-4 lg:grid lg:grid-cols-[220px_repeat(3,minmax(0,1fr))]">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Сравнение профилей
                 </div>
+                {performanceProfiles.map((profile) => {
+                  const build = catalogBuilds.find((item) => item.id === profile.buildId) ?? catalogBuilds[0];
+                  const isActive = profile.mode === activePerformanceMode;
+                  return (
+                    <button
+                      key={profile.id}
+                      type="button"
+                      onClick={() => setActivePerformanceMode(profile.mode)}
+                      className={`rounded-2xl px-4 py-3 text-left transition-colors ${
+                        isActive ? "bg-primary/[0.08]" : "hover:bg-background"
+                      }`}
+                    >
+                      <p className="text-sm font-semibold text-foreground">{profile.mode}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{build.name}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-[220px_repeat(3,minmax(0,1fr))]">
+                {[
+                  {
+                    label: "Сборка из каталога",
+                    getValue: (profile: PerformanceProfile) =>
+                      (catalogBuilds.find((build) => build.id === profile.buildId) ?? catalogBuilds[0]).name,
+                  },
+                  {
+                    label: "Видеокарта",
+                    getValue: (profile: PerformanceProfile) => profile.config.gpu,
+                  },
+                  {
+                    label: "Процессор",
+                    getValue: (profile: PerformanceProfile) => profile.config.cpu,
+                  },
+                  {
+                    label: "ОЗУ",
+                    getValue: (profile: PerformanceProfile) => profile.config.ram,
+                  },
+                  {
+                    label: "Накопитель",
+                    getValue: (profile: PerformanceProfile) => profile.config.storage,
+                  },
+                  {
+                    label: "1440p ориентир",
+                    getValue: (profile: PerformanceProfile) => profile.fps[1].value,
+                  },
+                  {
+                    label: "4K ориентир",
+                    getValue: (profile: PerformanceProfile) => profile.fps[2].value,
+                  },
+                ].map((row, rowIndex) => (
+                  <div key={row.label} className="contents">
+                    <div
+                      className={`border-b border-border px-6 py-4 text-sm font-medium text-muted-foreground ${
+                        rowIndex === 0 ? "bg-background/70" : "bg-background/50"
+                      }`}
+                    >
+                      {row.label}
+                    </div>
+                    {performanceProfiles.map((profile) => {
+                      const isActive = profile.mode === activePerformanceMode;
+                      return (
+                        <button
+                          key={`${row.label}-${profile.id}`}
+                          type="button"
+                          onClick={() => setActivePerformanceMode(profile.mode)}
+                          className={`border-b border-border px-6 py-4 text-left text-sm transition-colors ${
+                            isActive ? "bg-primary/[0.07] text-foreground" : "text-muted-foreground hover:bg-background/60"
+                          }`}
+                        >
+                          {row.getValue(profile)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </AnimatedSection>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={selectedPerformanceProfile.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -14 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]"
+            >
+              <div className="rounded-[1.75rem] border border-border bg-card p-6 md:p-8">
+                <div className="mb-5 flex flex-wrap items-center gap-3">
+                  <span className="rounded-full border border-primary/20 bg-primary/[0.08] px-4 py-2 text-sm font-medium text-foreground">
+                    {selectedPerformanceProfile.mode}
+                  </span>
+                  <span className="text-sm text-muted-foreground">Привязано к реальной сборке из каталога</span>
+                </div>
+                <h3 className="text-2xl font-semibold text-foreground">{selectedPerformanceProfile.title}</h3>
+                <p className="mt-2 text-base text-muted-foreground">{selectedPerformanceProfile.subtitle}</p>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+                  {selectedPerformanceProfile.description}
+                </p>
+                <div className="mt-6 rounded-2xl border border-border bg-background/70 p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Сборка из каталога</p>
+                      <p className="mt-2 text-xl font-semibold text-foreground">{selectedCatalogBuild.name}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{selectedCatalogBuild.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Стоимость</p>
+                      <p className="mt-2 text-2xl font-mono-spec font-bold text-primary">
+                        {formatCatalogPrice(selectedCatalogBuild.price)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {[
+                      { label: "Видеокарта", value: selectedCatalogBuild.gpu },
+                      { label: "Процессор", value: selectedCatalogBuild.cpu },
+                      { label: "Оперативная память", value: selectedCatalogBuild.ram },
+                      { label: "Накопитель", value: selectedCatalogBuild.ssd },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-2xl border border-border bg-card p-4">
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+                        <p className="mt-2 text-sm font-medium text-foreground">{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Link
+                      href={`/build/${selectedCatalogBuild.id}`}
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                    >
+                      Открыть сборку <ChevronRight size={16} />
+                    </Link>
+                    <Link
+                      href="/catalog"
+                      className="inline-flex items-center gap-2 rounded-xl border border-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+                    >
+                      Смотреть каталог
+                    </Link>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                {selectedPerformanceProfile.fps.map((resolution) => (
+                  <div key={resolution.label} className="rounded-2xl border border-border bg-card p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">{resolution.label}</p>
+                        <p className="mt-3 text-4xl font-mono-spec font-bold text-primary">{resolution.value}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">FPS</p>
+                      </div>
+                      <div className="h-20 w-20 rounded-full border border-primary/20 bg-primary/[0.08] p-2">
+                        <div className="flex h-full items-center justify-center rounded-full border border-primary/20 bg-background text-center text-xs font-semibold text-foreground">
+                          {resolution.label.replace(" ", "\n")}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="mt-4 text-sm leading-6 text-muted-foreground">{resolution.note}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </section>
+
+      <section className="section-padding">
+        <div className="container mx-auto px-4">
+          <AnimatedSection>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-4xl md:text-5xl font-display text-foreground">Игры</h2>
+                <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
+                  Ориентиры по играм для профиля <span className="text-foreground">{selectedPerformanceProfile.title}</span>.
+                </p>
+              </div>
+            </div>
+          </AnimatedSection>
+          <AnimatedSection delay={0.08}>
+            <div className="flex flex-wrap gap-2">
+              {games.map((g, i) => (
+                <button
+                  key={g}
+                  onClick={() => setFpsGame(i)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    fpsGame === i
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/30"
+                  }`}
+                >
+                  {g}
+                </button>
               ))}
             </div>
           </AnimatedSection>
-          <AnimatedSection delay={0.15}>
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-foreground">Программы</h3>
-              <div className="flex flex-wrap gap-2 mb-6">
-                {programs.map((p) => (
-                  <span key={p} className="px-3 py-1.5 rounded-lg bg-card border border-border text-sm text-muted-foreground">{p}</span>
-                ))}
+          <AnimatedSection delay={0.12}>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={selectedGameInsight.name}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
+                className="mt-6 rounded-[1.6rem] border border-border bg-card p-6"
+              >
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      Конфигуратор по игре
+                    </p>
+                    <h4 className="mt-3 text-2xl font-semibold text-foreground">{selectedGameInsight.name}</h4>
+                    <p className="mt-3 text-base leading-7 text-muted-foreground">
+                      {selectedGameInsight.summary}
+                    </p>
+                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                      {selectedGameInsight.fit}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-background/70 p-5">
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      На что опирается сборка
+                    </p>
+                    <div className="mt-4 space-y-3">
+                      {selectedGameInsight.needs.map((need) => (
+                        <div key={need} className="flex items-start gap-3">
+                          <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                          <span className="text-sm leading-6 text-foreground">{need}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {[
+                        { label: "GPU", value: selectedCatalogBuild.gpu },
+                        { label: "CPU", value: selectedCatalogBuild.cpu },
+                        { label: "RAM", value: selectedCatalogBuild.ram },
+                        { label: "SSD", value: selectedCatalogBuild.ssd },
+                      ].map((item) => (
+                        <div key={item.label} className="rounded-xl border border-border bg-card p-4">
+                          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+                          <p className="mt-2 text-sm font-medium text-foreground">{item.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </AnimatedSection>
+          <AnimatedSection delay={0.16}>
+            <div className="mt-6 rounded-[1.75rem] border border-border bg-card p-6 md:p-8">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Сценарий по игре
+                  </p>
+                  <h3 className="mt-3 text-2xl font-semibold text-foreground">{games[fpsGame]}</h3>
+                  <p className="mt-3 text-base leading-7 text-muted-foreground">
+                    Для <span className="text-foreground">{games[fpsGame]}</span> ориентир берётся по профилю{" "}
+                    <span className="text-foreground">{selectedPerformanceProfile.title}</span>.{" "}
+                    {selectedPerformanceProfile.settingsNote}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  {selectedPerformanceProfile.fps.map((resolution) => (
+                    <div key={resolution.label} className="rounded-2xl border border-border bg-background/70 p-5 text-center">
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{resolution.label}</p>
+                      <p className="mt-3 text-3xl font-mono-spec font-bold text-primary">{resolution.value}</p>
+                      <p className="mt-2 text-xs leading-5 text-muted-foreground">{resolution.note}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground italic">
-                Показатели FPS и производительности являются ориентировочными и зависят от настроек, разрешения, сцены нагрузки, версии ПО и конкретной конфигурации.
-              </p>
             </div>
+          </AnimatedSection>
+        </div>
+      </section>
+
+      <section className="section-padding bg-card/50">
+        <div className="container mx-auto px-4">
+          <AnimatedSection>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-4xl md:text-5xl font-display text-foreground">Программы</h2>
+                <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
+                  Рабочие ориентиры для профиля <span className="text-foreground">{selectedPerformanceProfile.title}</span>.
+                </p>
+              </div>
+            </div>
+          </AnimatedSection>
+          <AnimatedSection delay={0.08}>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {programs.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setActiveProgram(p)}
+                  className={`rounded-lg px-3 py-1.5 text-sm transition-all ${
+                    activeProgram === p
+                      ? "bg-primary text-primary-foreground"
+                      : "border border-border bg-card text-muted-foreground hover:border-primary/25 hover:text-foreground"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </AnimatedSection>
+          <AnimatedSection delay={0.12}>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={selectedProgramInsight.name}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
+                className="rounded-[1.6rem] border border-border bg-background/60 p-6"
+              >
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      Конфигуратор по программе
+                    </p>
+                    <h4 className="mt-3 text-2xl font-semibold text-foreground">{selectedProgramInsight.name}</h4>
+                    <p className="mt-3 text-base leading-7 text-muted-foreground">
+                      {selectedProgramInsight.summary}
+                    </p>
+                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                      {selectedProgramInsight.fit}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-card p-5">
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      На что опирается сборка
+                    </p>
+                    <div className="mt-4 space-y-3">
+                      {selectedProgramInsight.needs.map((need) => (
+                        <div key={need} className="flex items-start gap-3">
+                          <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                          <span className="text-sm leading-6 text-foreground">{need}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {[
+                        { label: "GPU", value: selectedCatalogBuild.gpu },
+                        { label: "CPU", value: selectedCatalogBuild.cpu },
+                        { label: "RAM", value: selectedCatalogBuild.ram },
+                        { label: "SSD", value: selectedCatalogBuild.ssd },
+                      ].map((item) => (
+                        <div key={item.label} className="rounded-xl border border-border bg-background/80 p-4">
+                          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+                          <p className="mt-2 text-sm font-medium text-foreground">{item.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </AnimatedSection>
+          <AnimatedSection delay={0.16}>
+            <div className="mt-6 mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+              {selectedPerformanceProfile.workflowHighlights.map((item) => (
+                <div key={item.title} className="rounded-2xl border border-border bg-card p-5">
+                  <h4 className="text-base font-semibold text-foreground">{item.title}</h4>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground italic">
+              Показатели FPS и производительности являются ориентировочными и зависят от настроек, разрешения, сцены нагрузки, версии ПО и конкретной конфигурации.
+            </p>
           </AnimatedSection>
         </div>
       </section>
@@ -421,11 +1245,27 @@ export default function Index() {
               </p>
             </div>
           </AnimatedSection>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-12 lg:auto-rows-[minmax(150px,auto)]">
             {aiCards.map((card, i) => (
               <AnimatedItem key={i} delay={i * 0.06}>
-                <div className="p-5 rounded-xl bg-card border border-border shadow-card-hover text-center group h-full flex items-center justify-center min-h-[100px]">
-                  <span className="font-medium text-foreground group-hover:text-primary transition-colors">{card}</span>
+                <div
+                  className={`group relative h-full overflow-hidden rounded-[1.6rem] border border-border bg-card p-6 shadow-card-hover ${card.className}`}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${card.accent} opacity-90`} />
+                  <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full border border-primary/10 bg-primary/[0.05] transition-transform duration-700 group-hover:scale-125" />
+                  <div className="relative flex h-full flex-col justify-between">
+                    <div className="mb-8 inline-flex w-fit rounded-full border border-primary/15 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                      Сценарий
+                    </div>
+                    <div>
+                      <h3 className="max-w-[24rem] text-xl font-semibold leading-tight text-foreground">
+                        {card.title}
+                      </h3>
+                      <p className="mt-3 max-w-[30rem] text-sm leading-6 text-muted-foreground">
+                        {card.desc}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </AnimatedItem>
             ))}
@@ -444,19 +1284,38 @@ export default function Index() {
               </p>
             </div>
           </AnimatedSection>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {builds.map((b, i) => (
               <AnimatedItem key={i} delay={i * 0.08}>
-                <div className="p-6 rounded-2xl bg-card border border-border shadow-card-hover flex flex-col h-full">
-                  <h3 className="font-semibold text-lg text-foreground mb-1">{b.tier}</h3>
-                  <p className="text-2xl font-bold text-primary font-mono-spec mb-2">{b.price}</p>
-                  <p className="text-sm text-muted-foreground mb-3">{b.desc}</p>
-                  <p className="text-xs text-muted-foreground font-mono-spec mb-6">{b.specs}</p>
-                  <div className="mt-auto flex gap-2">
-                    <Link href="/catalog" className="flex-1 text-center px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
+                <div className="flex h-full flex-col rounded-[1.6rem] border border-border bg-card p-6 shadow-card-hover">
+                  <div className="mb-5 min-h-[132px]">
+                    <span className="inline-flex rounded-full border border-primary/15 bg-primary/[0.08] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                      Готовая сборка
+                    </span>
+                    <h3 className="mt-4 text-lg font-semibold leading-tight text-foreground">{b.tier}</h3>
+                    <p className="mt-3 text-2xl font-bold text-primary font-mono-spec">{b.price}</p>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">{b.desc}</p>
+                  </div>
+                  <div className="mb-6 rounded-2xl border border-border bg-background/60 p-4">
+                    <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      Конфигурация
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {b.specs.split(" • ").map((spec) => (
+                        <span
+                          key={spec}
+                          className="rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-mono-spec text-muted-foreground"
+                        >
+                          {spec}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-auto grid grid-cols-1 gap-2">
+                    <Link href="/catalog" className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
                       Подробнее
                     </Link>
-                    <Link href="/configurator" className="flex-1 text-center px-3 py-2 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-accent transition-colors">
+                    <Link href="/configurator" className="flex-1 rounded-xl border border-border bg-background/50 px-4 py-2.5 text-center text-sm font-medium text-muted-foreground transition-colors hover:border-primary/20 hover:bg-accent hover:text-foreground">
                       Кастомизировать
                     </Link>
                   </div>

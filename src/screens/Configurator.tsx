@@ -1,113 +1,157 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatedSection, AnimatedItem } from "@/shared/components/AnimatedSection";
 import Link from "next/link";
-import { Cpu, Monitor, HardDrive, Server, CircuitBoard, BatteryCharging, Box, Fan, Check, AlertTriangle } from "lucide-react";
+import {
+  BatteryCharging,
+  Box,
+  Check,
+  CircuitBoard,
+  Cpu,
+  Fan,
+  HardDrive,
+  Monitor,
+  Server,
+} from "lucide-react";
+import { AnimatedItem, AnimatedSection } from "@/shared/components/AnimatedSection";
+import {
+  assemblyService,
+  configuratorCategories,
+} from "@/shared/data/regardPricingSnapshot";
 
 const modes = [
-  "Игры", "Стриминг", "Монтаж и дизайн", "3D и разработка",
-  "Локальный ИИ", "ИИ-агенты и автоматизация", "Рабочая станция",
+  "Игры",
+  "Стриминг",
+  "Монтаж и дизайн",
+  "3D и разработка",
+  "Локальный ИИ",
+  "ИИ-агенты и автоматизация",
+  "Рабочая станция",
 ];
 
-const categories = [
-  {
-    label: "Процессор",
-    icon: Cpu,
-    options: [
-      { name: "AMD Ryzen 5 7600X", price: 18500 },
-      { name: "AMD Ryzen 7 7800X3D", price: 32000 },
-      { name: "AMD Ryzen 9 7950X", price: 52000 },
-      { name: "Intel Core Ultra 5 245K", price: 24000 },
-      { name: "Intel Core Ultra 7 265K", price: 38000 },
-      { name: "Intel Core Ultra 9 285K", price: 58000 },
-    ],
+const iconsByLabel = {
+  "Процессор": Cpu,
+  "Видеокарта": Monitor,
+  "Оперативная память": HardDrive,
+  "Накопитель": Server,
+  "Материнская плата": CircuitBoard,
+  "Блок питания": BatteryCharging,
+  "Корпус": Box,
+  "Охлаждение": Fan,
+} as const;
+
+const categories = configuratorCategories.map((category) => ({
+  ...category,
+  icon: iconsByLabel[category.label as keyof typeof iconsByLabel],
+}));
+
+const [
+  cpuLabel,
+  gpuLabel,
+  ramLabel,
+  storageLabel,
+  motherboardLabel,
+  psuLabel,
+  caseLabel,
+  coolingLabel,
+] = categories.map((category) => category.label);
+
+const defaultSelections = Object.fromEntries(
+  categories.map((category) => [category.label, 0]),
+) as Record<string, number>;
+
+const modePresets: Record<number, Record<string, number>> = {
+  0: {
+    [cpuLabel]: 1,
+    [gpuLabel]: 1,
+    [ramLabel]: 1,
+    [storageLabel]: 1,
+    [motherboardLabel]: 0,
+    [psuLabel]: 1,
+    [caseLabel]: 1,
+    [coolingLabel]: 1,
   },
-  {
-    label: "Видеокарта",
-    icon: Monitor,
-    options: [
-      { name: "NVIDIA RTX 4060 8GB", price: 32000 },
-      { name: "NVIDIA RTX 4070 Super 12GB", price: 56000 },
-      { name: "NVIDIA RTX 5070 Ti 16GB", price: 82000 },
-      { name: "NVIDIA RTX 5080 16GB", price: 115000 },
-      { name: "NVIDIA RTX 5090 32GB", price: 230000 },
-    ],
+  1: {
+    [cpuLabel]: 1,
+    [gpuLabel]: 1,
+    [ramLabel]: 1,
+    [storageLabel]: 1,
+    [motherboardLabel]: 0,
+    [psuLabel]: 1,
+    [caseLabel]: 1,
+    [coolingLabel]: 2,
   },
-  {
-    label: "Оперативная память",
-    icon: HardDrive,
-    options: [
-      { name: "16 ГБ DDR5 5600 МГц", price: 5500 },
-      { name: "32 ГБ DDR5 6000 МГц", price: 11000 },
-      { name: "64 ГБ DDR5 6000 МГц", price: 22000 },
-      { name: "128 ГБ DDR5 5600 МГц", price: 48000 },
-    ],
+  2: {
+    [cpuLabel]: 2,
+    [gpuLabel]: 1,
+    [ramLabel]: 2,
+    [storageLabel]: 3,
+    [motherboardLabel]: 1,
+    [psuLabel]: 2,
+    [caseLabel]: 1,
+    [coolingLabel]: 3,
   },
-  {
-    label: "Накопитель",
-    icon: Server,
-    options: [
-      { name: "1 ТБ NVMe SSD Gen4", price: 7500 },
-      { name: "2 ТБ NVMe SSD Gen4", price: 14000 },
-      { name: "2 ТБ NVMe SSD Gen5", price: 22000 },
-      { name: "4 ТБ NVMe SSD Gen4", price: 28000 },
-    ],
+  3: {
+    [cpuLabel]: 4,
+    [gpuLabel]: 2,
+    [ramLabel]: 2,
+    [storageLabel]: 2,
+    [motherboardLabel]: 2,
+    [psuLabel]: 2,
+    [caseLabel]: 1,
+    [coolingLabel]: 3,
   },
-  {
-    label: "Материнская плата",
-    icon: CircuitBoard,
-    options: [
-      { name: "B650 (AMD)", price: 14000 },
-      { name: "X670E (AMD)", price: 26000 },
-      { name: "B860 (Intel)", price: 15000 },
-      { name: "Z890 (Intel)", price: 28000 },
-    ],
+  4: {
+    [cpuLabel]: 2,
+    [gpuLabel]: 4,
+    [ramLabel]: 3,
+    [storageLabel]: 3,
+    [motherboardLabel]: 1,
+    [psuLabel]: 3,
+    [caseLabel]: 2,
+    [coolingLabel]: 3,
   },
-  {
-    label: "Блок питания",
-    icon: BatteryCharging,
-    options: [
-      { name: "650W 80+ Gold", price: 8500 },
-      { name: "850W 80+ Gold", price: 12000 },
-      { name: "1000W 80+ Platinum", price: 18000 },
-      { name: "1200W 80+ Titanium", price: 28000 },
-    ],
+  5: {
+    [cpuLabel]: 5,
+    [gpuLabel]: 4,
+    [ramLabel]: 3,
+    [storageLabel]: 2,
+    [motherboardLabel]: 3,
+    [psuLabel]: 3,
+    [caseLabel]: 2,
+    [coolingLabel]: 3,
   },
-  {
-    label: "Корпус",
-    icon: Box,
-    options: [
-      { name: "Компактный Mid-Tower", price: 7000 },
-      { name: "Просторный Mid-Tower", price: 12000 },
-      { name: "Премиальный Full-Tower", price: 22000 },
-      { name: "Компактный ITX", price: 15000 },
-    ],
+  6: {
+    [cpuLabel]: 2,
+    [gpuLabel]: 3,
+    [ramLabel]: 3,
+    [storageLabel]: 3,
+    [motherboardLabel]: 1,
+    [psuLabel]: 3,
+    [caseLabel]: 2,
+    [coolingLabel]: 3,
   },
-  {
-    label: "Охлаждение",
-    icon: Fan,
-    options: [
-      { name: "Башенный кулер 4 трубки", price: 4500 },
-      { name: "Башенный кулер двойной", price: 7500 },
-      { name: "СЖО 240 мм", price: 9000 },
-      { name: "СЖО 360 мм", price: 14000 },
-    ],
-  },
-];
+};
 
 export default function Configurator() {
   const [activeMode, setActiveMode] = useState(0);
+  const [includeAssembly, setIncludeAssembly] = useState(true);
   const [selections, setSelections] = useState<Record<string, number>>(
-    Object.fromEntries(categories.map((c) => [c.label, 0]))
+    modePresets[0] ?? defaultSelections,
   );
 
-  const total = categories.reduce((sum, cat) => {
-    return sum + cat.options[selections[cat.label]].price;
+  const hardwareTotal = categories.reduce((sum, category) => {
+    return sum + category.options[selections[category.label]].price;
   }, 0);
+  const total = hardwareTotal + (includeAssembly ? assemblyService.price : 0);
 
-  const handleSelect = (catLabel: string, optIndex: number) => {
-    setSelections((prev) => ({ ...prev, [catLabel]: optIndex }));
+  const handleSelect = (categoryLabel: string, optionIndex: number) => {
+    setSelections((prev) => ({ ...prev, [categoryLabel]: optionIndex }));
+  };
+
+  const applyModePreset = (modeIndex: number) => {
+    setActiveMode(modeIndex);
+    setSelections(modePresets[modeIndex] ?? defaultSelections);
   };
 
   return (
@@ -117,24 +161,25 @@ export default function Configurator() {
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display mb-4">Конфигуратор ПК</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Собери систему под свои задачи, бюджет и требования к производительности. Меняй комплектующие, сравнивай варианты и смотри итоговую стоимость в реальном времени.
+              Собери систему под свои задачи, бюджет и требования к производительности. Меняй комплектующие,
+              сравнивай варианты и смотри итоговую стоимость в реальном времени.
             </p>
           </div>
         </AnimatedSection>
 
         <AnimatedSection delay={0.1}>
           <div className="flex flex-wrap justify-center gap-2 mb-12">
-            {modes.map((m, i) => (
+            {modes.map((mode, index) => (
               <button
-                key={m}
-                onClick={() => setActiveMode(i)}
+                key={mode}
+                onClick={() => applyModePreset(index)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeMode === i
+                  activeMode === index
                     ? "bg-primary text-primary-foreground"
                     : "bg-card border border-border text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {m}
+                {mode}
               </button>
             ))}
           </div>
@@ -142,40 +187,51 @@ export default function Configurator() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            {categories.map((cat, ci) => (
-              <AnimatedItem key={cat.label} delay={ci * 0.05}>
+            {categories.map((category, categoryIndex) => (
+              <AnimatedItem key={category.label} delay={categoryIndex * 0.05}>
                 <div className="bg-card border border-border rounded-2xl p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
-                      <cat.icon size={20} className="text-primary" />
+                      <category.icon size={20} className="text-primary" />
                     </div>
-                    <h3 className="font-semibold text-lg text-foreground">{cat.label}</h3>
+                    <h3 className="font-semibold text-lg text-foreground">{category.label}</h3>
                   </div>
+
                   <div className="space-y-2">
-                    {cat.options.map((opt, oi) => (
+                    {category.options.map((option, optionIndex) => (
                       <button
-                        key={oi}
-                        onClick={() => handleSelect(cat.label, oi)}
+                        key={option.name}
+                        onClick={() => handleSelect(category.label, optionIndex)}
                         className={`w-full flex items-center justify-between p-3 rounded-xl transition-all text-left ${
-                          selections[cat.label] === oi
+                          selections[category.label] === optionIndex
                             ? "bg-primary/10 border border-primary/30"
                             : "bg-accent/30 border border-transparent hover:border-border"
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            selections[cat.label] === oi ? "border-primary" : "border-muted-foreground/30"
-                          }`}>
-                            {selections[cat.label] === oi && (
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              selections[category.label] === optionIndex
+                                ? "border-primary"
+                                : "border-muted-foreground/30"
+                            }`}
+                          >
+                            {selections[category.label] === optionIndex && (
                               <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                             )}
                           </div>
-                          <span className={`text-sm font-medium ${selections[cat.label] === oi ? "text-foreground" : "text-muted-foreground"}`}>
-                            {opt.name}
-                          </span>
+                          <div>
+                            <span
+                              className={`block text-sm font-medium ${
+                                selections[category.label] === optionIndex ? "text-foreground" : "text-muted-foreground"
+                              }`}
+                            >
+                              {option.name}
+                            </span>
+                          </div>
                         </div>
-                        <span className="text-sm font-mono-spec text-muted-foreground">
-                          {opt.price.toLocaleString("ru-RU")} ₽
+                        <span className="text-sm font-mono-spec text-muted-foreground whitespace-nowrap">
+                          {option.price.toLocaleString("ru-RU")} ₽
                         </span>
                       </button>
                     ))}
@@ -190,20 +246,52 @@ export default function Configurator() {
               <AnimatedSection delay={0.2}>
                 <div className="bg-card border border-border rounded-2xl p-6 shadow-card-hover">
                   <h3 className="font-semibold text-lg text-foreground mb-4">Твоя конфигурация</h3>
+
                   <div className="space-y-3 mb-6">
-                    {categories.map((cat) => (
-                      <div key={cat.label} className="flex justify-between items-start gap-2">
+                    {categories.map((category) => (
+                      <div key={category.label} className="flex justify-between items-start gap-2">
                         <div>
-                          <p className="text-xs text-muted-foreground">{cat.label}</p>
-                          <p className="text-sm font-medium text-foreground">{cat.options[selections[cat.label]].name}</p>
+                          <p className="text-xs text-muted-foreground">{category.label}</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {category.options[selections[category.label]].name}
+                          </p>
                         </div>
                         <span className="text-xs font-mono-spec text-muted-foreground whitespace-nowrap">
-                          {cat.options[selections[cat.label]].price.toLocaleString("ru-RU")} ₽
+                          {category.options[selections[category.label]].price.toLocaleString("ru-RU")} ₽
                         </span>
                       </div>
                     ))}
+
+                    <label className="flex items-start gap-3 rounded-xl border border-border bg-accent/20 p-3">
+                      <input
+                        type="checkbox"
+                        checked={includeAssembly}
+                        onChange={(event) => setIncludeAssembly(event.target.checked)}
+                        className="mt-0.5 h-4 w-4 accent-[hsl(var(--primary))]"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-foreground">{assemblyService.label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Опционально: сборка, кабель-менеджмент, стресс-тесты и финальная проверка.
+                        </p>
+                      </div>
+                      <span className="text-xs font-mono-spec text-muted-foreground whitespace-nowrap">
+                        {assemblyService.price.toLocaleString("ru-RU")} ₽
+                      </span>
+                    </label>
                   </div>
+
                   <div className="border-t border-border pt-4 mb-6">
+                    <div className="flex justify-between items-center mb-2 text-sm text-muted-foreground">
+                      <span>Железо</span>
+                      <span className="font-mono-spec">{hardwareTotal.toLocaleString("ru-RU")} ₽</span>
+                    </div>
+                    {includeAssembly && (
+                      <div className="flex justify-between items-center mb-2 text-sm text-muted-foreground">
+                        <span>Сборка</span>
+                        <span className="font-mono-spec">{assemblyService.price.toLocaleString("ru-RU")} ₽</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-foreground">Итого</span>
                       <span className="text-2xl font-bold text-primary font-mono-spec">
@@ -211,6 +299,7 @@ export default function Configurator() {
                       </span>
                     </div>
                   </div>
+
                   <div className="space-y-3">
                     <Link
                       href="/contacts"
@@ -218,9 +307,10 @@ export default function Configurator() {
                     >
                       Заказать сборку
                     </Link>
+
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Check size={14} className="text-primary" />
-                      <span>Проверка совместимости пройдена</span>
+                      <span>Конкретные комплектующие и актуальная коммерческая стоимость</span>
                     </div>
                   </div>
                 </div>

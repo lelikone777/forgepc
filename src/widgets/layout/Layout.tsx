@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/providers/ThemeProvider";
-import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, Menu, X } from "lucide-react";
 
 const navItems = [
@@ -17,7 +16,7 @@ const navItems = [
 ];
 
 export function Header() {
-  const { theme, toggle } = useTheme();
+  const { theme, isHydrated, toggle } = useTheme();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -34,12 +33,9 @@ export function Header() {
 
   return (
     <>
-      <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled ? "glass-surface shadow-lg" : "bg-transparent"
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/95 transition-all duration-500 ${
+          scrolled ? "shadow-lg" : "shadow-sm"
         }`}
       >
         <div className="container mx-auto flex items-center justify-between h-16 md:h-20 px-4">
@@ -74,7 +70,11 @@ export function Header() {
               className="w-10 h-10 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               aria-label="Переключить тему"
             >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              {isHydrated ? (
+                theme === "dark" ? <Sun size={18} /> : <Moon size={18} />
+              ) : (
+                <span aria-hidden className="block h-[18px] w-[18px]" />
+              )}
             </button>
             <Link
               href="/configurator"
@@ -90,16 +90,17 @@ export function Header() {
             </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-40 pt-20 glass-surface lg:hidden"
-          >
+      <div
+        aria-hidden={!mobileOpen}
+        inert={!mobileOpen}
+        className={`fixed inset-0 z-40 bg-background pt-20 lg:hidden transition-all duration-300 ease-out ${
+          mobileOpen
+            ? "pointer-events-auto translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-4 opacity-0"
+        }`}
+      >
             <nav className="flex flex-col items-center gap-2 p-6">
               {navItems.map((item) => (
                 <Link
@@ -121,9 +122,7 @@ export function Header() {
                 Собрать ПК
               </Link>
             </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
     </>
   );
 }
@@ -174,7 +173,6 @@ export function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Контакты</h4>
             <div className="flex flex-col gap-2 text-sm text-muted-foreground">
               <span>info@forgepc.ru</span>
-              <span>+7 (999) 123-45-67</span>
               <span>Москва, Россия</span>
             </div>
           </div>
