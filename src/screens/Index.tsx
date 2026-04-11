@@ -596,7 +596,7 @@ export default function Index() {
         />
         <div className="relative container mx-auto px-4 pt-32 pb-20 text-center">
           <AnimatedSection>
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display leading-[0.95] mb-6">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display leading-[0.95] mb-6">
               Максимум мощности.
               <br />
               <span className="gradient-text">Собран под тебя.</span>
@@ -611,13 +611,13 @@ export default function Index() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Link
                 href="/configurator"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:opacity-90 transition-all glow-primary"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 sm:px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base sm:text-lg hover:opacity-90 transition-all glow-primary"
               >
                 Собрать свой ПК <ArrowRight size={20} />
               </Link>
               <Link
                 href="/catalog"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl glass-surface font-semibold text-lg text-foreground hover:bg-accent transition-all"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 sm:px-8 py-4 rounded-xl glass-surface font-semibold text-base sm:text-lg text-foreground hover:bg-accent transition-all"
               >
                 Посмотреть готовые сборки
               </Link>
@@ -733,7 +733,7 @@ export default function Index() {
           </AnimatedSection>
           <AnimatedSection delay={0.2}>
             <div className="max-w-4xl mx-auto bg-card border border-border rounded-2xl p-6 md:p-10 shadow-card-hover">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {configParts.map((p, i) => (
                   <button
                     key={p.id}
@@ -801,7 +801,7 @@ export default function Index() {
               </div>
               <Link
                 href="/configurator"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
               >
                 Открыть полный конфигуратор <ChevronRight size={18} />
               </Link>
@@ -1382,7 +1382,7 @@ export default function Index() {
             {[...brands, ...brands].map((b, i) => (
               <span
                 key={i}
-                className="inline-flex items-center justify-center px-8 py-3 mx-2 rounded-xl bg-card border border-border text-muted-foreground font-semibold text-sm whitespace-nowrap hover:text-primary hover:border-primary/30 transition-colors"
+                className="inline-flex items-center justify-center px-6 sm:px-8 py-3 mx-2 rounded-xl bg-card border border-border text-muted-foreground font-semibold text-sm whitespace-nowrap hover:text-primary hover:border-primary/30 transition-colors"
               >
                 {b}
               </span>
@@ -1545,13 +1545,13 @@ export default function Index() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/configurator"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:opacity-90 transition-all glow-primary"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 sm:px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base sm:text-lg hover:opacity-90 transition-all glow-primary"
               >
                 Начать сборку <ArrowRight size={20} />
               </Link>
               <Link
                 href="/contacts"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl glass-surface font-semibold text-lg text-foreground hover:bg-accent transition-all"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 sm:px-8 py-4 rounded-xl glass-surface font-semibold text-base sm:text-lg text-foreground hover:bg-accent transition-all"
               >
                 Получить консультацию
               </Link>

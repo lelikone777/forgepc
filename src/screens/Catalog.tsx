@@ -56,7 +56,7 @@ export default function Catalog() {
                     <h3 className="font-semibold text-lg text-foreground">{build.name}</h3>
                     <span className="text-xs text-muted-foreground">{build.category}</span>
                   </div>
-                  <span className="text-xl font-bold text-primary font-mono-spec whitespace-nowrap">
+                  <span className="text-lg sm:text-xl font-bold text-primary font-mono-spec">
                     {formatCatalogPrice(build.price)}
                   </span>
                 </div>

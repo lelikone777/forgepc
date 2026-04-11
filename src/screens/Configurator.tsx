@@ -202,7 +202,7 @@ export default function Configurator() {
                       <button
                         key={option.name}
                         onClick={() => handleSelect(category.label, optionIndex)}
-                        className={`w-full flex items-center justify-between p-3 rounded-xl transition-all text-left ${
+                        className={`w-full flex flex-col items-start gap-2 p-3 sm:flex-row sm:items-center sm:justify-between rounded-xl transition-all text-left ${
                           selections[category.label] === optionIndex
                             ? "bg-primary/10 border border-primary/30"
                             : "bg-accent/30 border border-transparent hover:border-border"
@@ -230,7 +230,7 @@ export default function Configurator() {
                             </span>
                           </div>
                         </div>
-                        <span className="text-sm font-mono-spec text-muted-foreground whitespace-nowrap">
+                        <span className="pl-8 text-sm font-mono-spec text-muted-foreground sm:pl-0">
                           {option.price.toLocaleString("ru-RU")} ₽
                         </span>
                       </button>
@@ -249,14 +249,14 @@ export default function Configurator() {
 
                   <div className="space-y-3 mb-6">
                     {categories.map((category) => (
-                      <div key={category.label} className="flex justify-between items-start gap-2">
+                      <div key={category.label} className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:items-start sm:gap-2">
                         <div>
                           <p className="text-xs text-muted-foreground">{category.label}</p>
                           <p className="text-sm font-medium text-foreground">
                             {category.options[selections[category.label]].name}
                           </p>
                         </div>
-                        <span className="text-xs font-mono-spec text-muted-foreground whitespace-nowrap">
+                        <span className="text-xs font-mono-spec text-muted-foreground">
                           {category.options[selections[category.label]].price.toLocaleString("ru-RU")} ₽
                         </span>
                       </div>
@@ -275,7 +275,7 @@ export default function Configurator() {
                           Опционально: сборка, кабель-менеджмент, стресс-тесты и финальная проверка.
                         </p>
                       </div>
-                      <span className="text-xs font-mono-spec text-muted-foreground whitespace-nowrap">
+                      <span className="text-xs font-mono-spec text-muted-foreground">
                         {assemblyService.price.toLocaleString("ru-RU")} ₽
                       </span>
                     </label>

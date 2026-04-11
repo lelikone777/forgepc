@@ -3,29 +3,21 @@ import type { ReactNode } from "react";
 import "../src/index.css";
 import { AppProviders } from "@/providers/AppProviders";
 import { Header, Footer } from "@/widgets/layout/Layout";
+import { siteConfig } from "@/shared/config/site";
+import { createSiteJsonLd, getAbsoluteUrl } from "@/shared/lib/seo";
 
-const siteUrl = "https://forgepc.ru";
 const defaultTitle = "ForgePC - Кастомные ПК на заказ";
-const defaultDescription =
-  "Сборка мощных и надежных ПК под игры, стриминг, монтаж, 3D, разработку и локальный ИИ. Индивидуальная конфигурация под ваши задачи и бюджет.";
+const siteJsonLd = createSiteJsonLd();
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(siteConfig.url),
   title: {
     default: defaultTitle,
     template: "%s | ForgePC",
   },
-  description: defaultDescription,
-  keywords: [
-    "кастомный ПК",
-    "сборка ПК на заказ",
-    "игровой компьютер",
-    "рабочая станция",
-    "ПК для ИИ",
-    "конфигуратор ПК",
-    "ForgePC",
-  ],
-  applicationName: "ForgePC",
+  description: siteConfig.description,
+  keywords: [...siteConfig.keywords],
+  applicationName: siteConfig.name,
   alternates: {
     canonical: "/",
   },
@@ -35,37 +27,38 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    locale: "ru_RU",
-    url: siteUrl,
-    siteName: "ForgePC",
+    locale: siteConfig.locale,
+    url: siteConfig.url,
+    siteName: siteConfig.name,
     title: defaultTitle,
-    description: defaultDescription,
+    description: siteConfig.description,
     images: [
       {
-        url: "/logo.svg",
-        width: 512,
-        height: 512,
-        alt: "Логотип ForgePC",
+        url: getAbsoluteUrl("/opengraph-image"),
+        width: 1200,
+        height: 630,
+        alt: siteConfig.name,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: defaultTitle,
-    description: defaultDescription,
-    images: ["/logo.svg"],
+    description: siteConfig.description,
+    images: [getAbsoluteUrl("/twitter-image")],
   },
   icons: {
     icon: [{ url: "/logo.svg", type: "image/svg+xml" }],
     shortcut: ["/logo.svg"],
     apple: [{ url: "/logo.svg", type: "image/svg+xml" }],
   },
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#ff6a00",
+  themeColor: siteConfig.themeColor,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -75,6 +68,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         suppressHydrationWarning
         className="relative min-h-screen overflow-x-hidden bg-background text-foreground antialiased"
       >
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
+        />
         <div aria-hidden className="app-bg" />
         <div className="relative z-10">
           <AppProviders>

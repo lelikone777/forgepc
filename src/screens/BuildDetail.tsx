@@ -3,85 +3,140 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AnimatedSection, AnimatedItem } from "@/shared/components/AnimatedSection";
-import { ArrowLeft, Check, Cpu, Monitor, HardDrive, Server, Fan, Box, BatteryCharging, CircuitBoard } from "lucide-react";
+import { ArrowLeft, Check, Cpu, Monitor, HardDrive, Server } from "lucide-react";
+import { formatCatalogPrice, getCatalogBuildById } from "@/shared/data/catalogBuilds";
 
-const builds: Record<string, {
-  name: string; cat: string; price: string; desc: string; fullDesc: string;
-  specs: { label: string; value: string; icon: any }[];
-  features: string[];
-}> = {
-  "start-1": {
-    name: "ForgePC Старт", cat: "Игровые ПК", price: "89 900 ₽",
-    desc: "Уверенный Full HD-гейминг в современных играх",
-    fullDesc: "Сбалансированная конфигурация для комфортной игры в Full HD. Отличный старт для тех, кто хочет качественный игровой ПК без переплаты. Подходит для Counter-Strike 2, Fortnite, Dota 2, Apex Legends и других популярных игр на высоких настройках.",
-    specs: [
-      { label: "Процессор", value: "AMD Ryzen 5 7600X", icon: Cpu },
-      { label: "Видеокарта", value: "NVIDIA RTX 4060 8GB", icon: Monitor },
-      { label: "Оперативная память", value: "16 ГБ DDR5 5600 МГц", icon: HardDrive },
-      { label: "Накопитель", value: "1 ТБ NVMe SSD Gen4", icon: Server },
-      { label: "Материнская плата", value: "B650 (AMD)", icon: CircuitBoard },
-      { label: "Блок питания", value: "650W 80+ Gold", icon: BatteryCharging },
-      { label: "Корпус", value: "Компактный Mid-Tower", icon: Box },
-      { label: "Охлаждение", value: "Башенный кулер 4 трубки", icon: Fan },
-    ],
-    features: ["Full HD 60-144+ FPS в AAA", "Тихая работа", "Потенциал для апгрейда", "Стресс-тест пройден"],
-  },
+type BuildDetailProps = {
+  id?: string;
+};
+
+const categoryDescriptions: Record<string, string> = {
+  "Игровые ПК":
+    "Сбалансированная конфигурация для уверенной игры в современных проектах с нормальным запасом по производительности и комфортом на каждый день.",
+  "Премиальные игровые ПК":
+    "Сборка с выраженным запасом по GPU и платформе для high refresh, 1440p, 4K и тяжёлых современных релизов без компромиссов по плавности.",
+  "Рабочие станции":
+    "Профессиональная система под длительные рендеры, сложные сцены, многозадачность и стабильную нагрузку в рабочих приложениях.",
+  "ПК для монтажа и 3D":
+    "Конфигурация с упором на монтаж, визуализацию, тяжёлые ассеты, рендер и плавную работу с профессиональным софтом.",
+  "ПК для локального ИИ":
+    "Система с большим запасом по VRAM, RAM и общей вычислительной мощности для локальных моделей, генерации и inference-сценариев.",
+  "ПК для разработки и ИИ-агентов":
+    "Сборка под контейнеры, Python-стек, локальные модели, автоматизацию, многозадачные dev-сценарии и тяжёлую рабочую среду.",
+};
+
+const categoryFeatures: Record<string, string[]> = {
+  "Игровые ПК": [
+    "Стабильный FPS в современных играх",
+    "Подходит как база для апгрейда",
+    "Проверка совместимости и нагрузочное тестирование",
+    "Возможность кастомизации под твои задачи",
+  ],
+  "Премиальные игровые ПК": [
+    "Запас под 1440p и 4K-гейминг",
+    "Подходит для high refresh мониторов",
+    "Стабильная работа под длительной нагрузкой",
+    "Возможность кастомизации под твои задачи",
+  ],
+  "Рабочие станции": [
+    "Рассчитано на тяжёлую профессиональную нагрузку",
+    "Многозадачность без явных узких мест",
+    "Подходит для рендера, компиляции и больших проектов",
+    "Возможность кастомизации под твои задачи",
+  ],
+  "ПК для монтажа и 3D": [
+    "Упор на монтаж, viewport и рендер",
+    "Запас памяти под большие сцены и проекты",
+    "Быстрый рабочий отклик системы",
+    "Возможность кастомизации под твои задачи",
+  ],
+  "ПК для локального ИИ": [
+    "Подходит для локальных LLM и генерации",
+    "Большой запас по памяти и вычислениям",
+    "Уверенная работа в тяжёлых AI-сценариях",
+    "Возможность кастомизации под твои задачи",
+  ],
+  "ПК для разработки и ИИ-агентов": [
+    "Подходит для Docker, IDE и контейнеров",
+    "Комфортная среда для Python и ML-стека",
+    "Нормальный запас под автоматизацию и локальные сервисы",
+    "Возможность кастомизации под твои задачи",
+  ],
 };
 
 const defaultBuild = {
-  name: "ForgePC Сборка", cat: "Кастомный ПК", price: "По запросу",
-  desc: "Кастомная конфигурация под ваши задачи",
-  fullDesc: "Эта сборка подобрана под конкретные задачи и бюджет. Каждый компонент проверен на совместимость, система протестирована под нагрузкой и готова к работе.",
-  specs: [
-    { label: "Процессор", value: "AMD Ryzen 7 7800X3D", icon: Cpu },
-    { label: "Видеокарта", value: "NVIDIA RTX 5070 Ti 16GB", icon: Monitor },
-    { label: "Оперативная память", value: "32 ГБ DDR5 6000 МГц", icon: HardDrive },
-    { label: "Накопитель", value: "2 ТБ NVMe SSD Gen4", icon: Server },
-    { label: "Материнская плата", value: "X670E (AMD)", icon: CircuitBoard },
-    { label: "Блок питания", value: "850W 80+ Gold", icon: BatteryCharging },
-    { label: "Корпус", value: "Просторный Mid-Tower", icon: Box },
-    { label: "Охлаждение", value: "СЖО 360 мм", icon: Fan },
-  ],
-  features: ["2K 165+ FPS в AAA", "4K 60+ FPS", "Тихая работа под нагрузкой", "Стресс-тест пройден", "Чистая сборка и кабель-менеджмент"],
+  name: "ForgePC Сборка",
+  category: "Кастомный ПК",
+  price: null,
+  description: "Кастомная конфигурация под ваши задачи",
 };
 
-export default function BuildDetail() {
+export default function BuildDetail({ id: initialId }: BuildDetailProps) {
   const params = useParams<{ id: string }>();
-  const id = params?.id;
-  const build = (id && builds[id]) || defaultBuild;
+  const resolvedId = initialId ?? params?.id;
+  const build = resolvedId ? getCatalogBuildById(resolvedId) : undefined;
+  const currentBuild = build ?? defaultBuild;
+
+  const specs = [
+    { label: "Процессор", value: build?.cpu ?? "Подбирается под задачу", icon: Cpu },
+    { label: "Видеокарта", value: build?.gpu ?? "Подбирается под задачу", icon: Monitor },
+    { label: "Оперативная память", value: build?.ram ?? "Подбирается под задачу", icon: HardDrive },
+    { label: "Накопитель", value: build?.ssd ?? "Подбирается под задачу", icon: Server },
+  ];
+
+  const features = build
+    ? categoryFeatures[build.category] ?? [
+        "Точная конфигурация под реальные задачи",
+        "Проверка совместимости и стабильности",
+        "Возможность кастомизации",
+      ]
+    : [
+        "Точная конфигурация под реальные задачи",
+        "Проверка совместимости и стабильности",
+        "Возможность кастомизации",
+      ];
+
+  const fullDescription = build
+    ? categoryDescriptions[build.category] ??
+      "Эта сборка подобрана под конкретные задачи и бюджет. Каждый ключевой компонент сбалансирован по роли, а сама конфигурация может быть доработана под ваши требования."
+    : "Эта сборка подбирается под конкретные задачи и бюджет. Все ключевые компоненты согласуются по совместимости, сценарию нагрузки и потенциалу дальнейшего апгрейда.";
 
   return (
     <div className="min-h-screen pt-24 pb-20">
       <div className="container mx-auto px-4">
         <AnimatedSection>
-          <Link href="/catalog" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8">
-            <ArrowLeft size={18} /> Назад к каталогу
+          <Link
+            href="/catalog"
+            className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft size={18} />
+            Назад к каталогу
           </Link>
         </AnimatedSection>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
           <div className="lg:col-span-3">
             <AnimatedSection>
               <div className="mb-8">
-                <span className="text-sm text-muted-foreground">{build.cat}</span>
-                <h1 className="text-4xl md:text-5xl font-display mt-1 mb-2">{build.name}</h1>
-                <p className="text-xl text-muted-foreground">{build.desc}</p>
+                <span className="text-sm text-muted-foreground">{currentBuild.category}</span>
+                <h1 className="mt-1 mb-2 text-3xl font-display sm:text-4xl md:text-5xl">{currentBuild.name}</h1>
+                <p className="text-lg text-muted-foreground md:text-xl">{currentBuild.description}</p>
               </div>
-              <p className="text-muted-foreground leading-relaxed mb-8">{build.fullDesc}</p>
+              <p className="mb-8 text-muted-foreground leading-relaxed">{fullDescription}</p>
             </AnimatedSection>
 
             <AnimatedSection delay={0.1}>
-              <h2 className="text-2xl font-display mb-6">Характеристики</h2>
+              <h2 className="mb-6 text-2xl font-display">Характеристики</h2>
               <div className="space-y-3">
-                {build.specs.map((s, i) => (
-                  <AnimatedItem key={i} delay={i * 0.04}>
-                    <div className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border">
-                      <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center shrink-0">
-                        <s.icon size={20} className="text-primary" />
+                {specs.map((spec, index) => (
+                  <AnimatedItem key={spec.label} delay={index * 0.04}>
+                    <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent">
+                        <spec.icon size={20} className="text-primary" />
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">{s.label}</p>
-                        <p className="font-medium text-foreground font-mono-spec text-sm">{s.value}</p>
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground">{spec.label}</p>
+                        <p className="truncate text-sm font-medium text-foreground sm:text-base">{spec.value}</p>
                       </div>
                     </div>
                   </AnimatedItem>
@@ -91,28 +146,30 @@ export default function BuildDetail() {
           </div>
 
           <div className="lg:col-span-2">
-            <div className="sticky top-24">
+            <div className="lg:sticky lg:top-24">
               <AnimatedSection delay={0.2}>
-                <div className="bg-card border border-border rounded-2xl p-6 shadow-card-hover mb-6">
-                  <p className="text-3xl font-bold text-primary font-mono-spec mb-4">{build.price}</p>
-                  <div className="space-y-2 mb-6">
-                    {build.features.map((f, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <Check size={16} className="text-primary shrink-0" />
-                        <span className="text-sm text-foreground">{f}</span>
+                <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-card-hover">
+                  <p className="mb-4 text-3xl font-bold text-primary font-mono-spec">
+                    {build ? formatCatalogPrice(build.price) : "По запросу"}
+                  </p>
+                  <div className="mb-6 space-y-2">
+                    {features.map((feature) => (
+                      <div key={feature} className="flex items-center gap-2">
+                        <Check size={16} className="shrink-0 text-primary" />
+                        <span className="text-sm text-foreground">{feature}</span>
                       </div>
                     ))}
                   </div>
                   <div className="space-y-3">
                     <Link
                       href="/contacts"
-                      className="w-full inline-flex items-center justify-center px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+                      className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-6 py-3 text-center font-semibold text-primary-foreground transition-opacity hover:opacity-90"
                     >
                       Заказать эту сборку
                     </Link>
                     <Link
                       href="/configurator"
-                      className="w-full inline-flex items-center justify-center px-6 py-3 rounded-xl border border-border text-foreground font-semibold hover:bg-accent transition-colors"
+                      className="inline-flex w-full items-center justify-center rounded-xl border border-border px-6 py-3 text-center font-semibold text-foreground transition-colors hover:bg-accent"
                     >
                       Кастомизировать
                     </Link>
