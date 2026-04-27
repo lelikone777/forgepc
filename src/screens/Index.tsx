@@ -718,7 +718,7 @@ export default function Index() {
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const connection = navigator.connection as { saveData?: boolean } | undefined;
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
     const saveDataEnabled = Boolean(connection?.saveData);
 
     if (!prefersReducedMotion && !saveDataEnabled) {
