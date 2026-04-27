@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatedSection, AnimatedItem } from "@/shared/components/AnimatedSection";
 import { motion, AnimatePresence } from "framer-motion";
 import { catalogBuilds, formatCatalogPrice } from "@/shared/data/catalogBuilds";
@@ -559,6 +559,8 @@ export default function Index() {
   const [fpsGame, setFpsGame] = useState(0);
   const [activeProgram, setActiveProgram] = useState(programs[0]);
   const [activeConfigPart, setActiveConfigPart] = useState(configParts[0].id);
+  const [isHeroVideoEnabled, setIsHeroVideoEnabled] = useState(false);
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
   const [activePerformanceMode, setActivePerformanceMode] = useState<PerformanceMode>("Игры");
 
   const selectedConfigPart = configParts.find((part) => part.id === activeConfigPart) ?? configParts[0];
@@ -570,30 +572,55 @@ export default function Index() {
   const selectedProgramInsight =
     programInsights.find((program) => program.name === activeProgram) ?? programInsights[0];
 
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const connection = navigator.connection as { saveData?: boolean } | undefined;
+    const saveDataEnabled = Boolean(connection?.saveData);
+
+    if (!prefersReducedMotion && !saveDataEnabled) {
+      setIsHeroVideoEnabled(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+
+    if (!isHeroVideoEnabled) {
+      video.pause();
+      return;
+    }
+
+    const playPromise = video.play();
+    if (playPromise) {
+      playPromise.catch(() => {
+        setIsHeroVideoEnabled(false);
+      });
+    }
+  }, [isHeroVideoEnabled]);
+
   return (
     <div className="min-h-screen">
       {/* HERO */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div
-            aria-hidden
-            className="absolute inset-[-4%] bg-center bg-cover bg-no-repeat opacity-85 [filter:contrast(1.1)_saturate(1.12)_brightness(0.82)] dark:opacity-80 dark:[filter:contrast(1.08)_saturate(1.05)_brightness(0.72)]"
-            style={{ backgroundImage: "url('/media/hero-neon-builds-poster.png')" }}
-          />
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
+        <div className="pointer-events-none absolute inset-0">
+          {isHeroVideoEnabled ? (
+            <video
+              ref={heroVideoRef}
+              className="absolute inset-0 h-full w-full object-cover"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              aria-hidden
+              disablePictureInPicture
+            >
+              <source src="/PixVerse_V6_Image_Text_540P_Dark_premium_cinem.mp4" type="video/mp4" />
+            </video>
+          ) : null}
         </div>
-        <div className="absolute inset-0 bg-background/46 dark:bg-background/56" />
-        <div className="absolute inset-0 bg-gradient-to-br from-background/84 via-background/54 to-accent/22 dark:to-primary/14" />
-        <div
-          aria-hidden
-          className="hero-ambient-glow absolute inset-x-[8%] bottom-[-12%] h-[42vh] rounded-full bg-primary/16 blur-3xl dark:bg-primary/12"
-        />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+        <div className="absolute inset-0 bg-black/50" />
         <div className="relative container mx-auto px-4 pt-32 pb-20 text-center">
           <AnimatedSection>
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display leading-[0.95] mb-6">
